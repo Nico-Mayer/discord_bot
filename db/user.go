@@ -1,7 +1,6 @@
 package db
 
 import (
-	"math"
 	"sort"
 )
 
@@ -101,17 +100,15 @@ func (user *User) GiveExp(exp int) error {
 	return nil
 }
 
-func (user *User) CalcLevel(expGrowthFactor float64, maxLevel int) (newLevel int, oldLevel int, levelUp bool, err error) {
-	newLevel = int(math.Pow(float64(user.Exp), 1/expGrowthFactor))
+func (user *User) CalcLevel(expNeededPerLevel int) (newLevel int, oldLevel int, levelUp bool, err error) {
 	oldLevel = user.Level
-	levelUp = false
 
-	if newLevel > maxLevel {
-		newLevel = maxLevel
-	}
-
-	if newLevel > oldLevel {
+	if user.Exp >= oldLevel*expNeededPerLevel {
+		newLevel = user.Exp / expNeededPerLevel
 		levelUp = true
+	} else {
+		newLevel = oldLevel
+		levelUp = false
 	}
 
 	query := "UPDATE users SET level = $1 WHERE id = $2"

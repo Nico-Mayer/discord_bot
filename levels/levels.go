@@ -9,11 +9,10 @@ import (
 
 const (
 	minLevel          = 1
-	maxLevel          = 100
-	expGrowthFactor   = 3.0
+	expNeededPerLevel = 50
 	expPerMessage     = 10
 	expPerVoiceJoin   = 20
-	commandsChannelId = "802108357489983519"
+	commandsChannelId = "692820682425237615"
 )
 
 var levelMapping = map[int]string{
@@ -53,7 +52,7 @@ func Init(s *discordgo.Session) {
 		}
 
 		user.GiveExp(expPerMessage)
-		newLevel, _, levelUp, err := user.CalcLevel(expGrowthFactor, maxLevel)
+		newLevel, _, levelUp, err := user.CalcLevel(expNeededPerLevel)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -90,7 +89,7 @@ func Init(s *discordgo.Session) {
 			}
 
 			user.GiveExp(expPerVoiceJoin)
-			newLevel, _, levelUp, err := user.CalcLevel(expGrowthFactor, maxLevel)
+			newLevel, _, levelUp, err := user.CalcLevel(expNeededPerLevel)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -106,14 +105,26 @@ func handleLevelUp(newLevel int, s *discordgo.Session, guildID string, user db.U
 	switch newLevel {
 	case 20:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
+		congratulate(s, user, newLevel)
 	case 40:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
+		congratulate(s, user, newLevel)
 	case 60:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
+		congratulate(s, user, newLevel)
 	case 80:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
+		congratulate(s, user, newLevel)
 	case 100:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
+		congratulate(s, user, newLevel)
+	default:
+		return
 	}
-	s.ChannelMessageSend(commandsChannelId, fmt.Sprintf("<@%s> ist jetzt Level %d! 🎉", user.ID, newLevel))
+}
+
+func congratulate(s *discordgo.Session, user db.User, newLevel int) {
+	message := fmt.Sprintf("<@%s> ist jetzt Level %d! 🎉", user.ID, newLevel)
+
+	s.ChannelMessageSend(commandsChannelId, message)
 }
