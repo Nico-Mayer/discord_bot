@@ -48,10 +48,22 @@ func (p *Player) Play(query string, voiceState *discordgo.VoiceState) {
 		return
 	}
 
-	options := dca.StdEncodeOptions
-	options.RawOutput = true
-	options.Bitrate = 128
-	options.Application = "lowdelay"
+	var options = &dca.EncodeOptions{
+		Volume:           200,
+		Channels:         2,
+		FrameRate:        48000,
+		FrameDuration:    20,
+		Bitrate:          64,
+		Application:      dca.AudioApplicationLowDelay,
+		CompressionLevel: 10,
+		PacketLoss:       3,
+		BufferedFrames:   200,
+		VBR:              true,
+		StartTime:        0,
+		VolumeFloat:      0.5,
+		RawOutput:        true,
+	}
+
 	encodingSession, err := dca.EncodeFile(song.downloadUrl, options)
 
 	if err != nil {
