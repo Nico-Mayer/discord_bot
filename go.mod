@@ -8,6 +8,8 @@ require github.com/bwmarrin/discordgo v0.27.1 // direct
 
 require github.com/jedib0t/go-pretty/v6 v6.4.9
 
+require github.com/ClintonCollins/dca v1.0.4
+
 require (
 	github.com/KnutZuidema/golio v0.0.0-20231120132142-dbe175146b47
 	github.com/bitly/go-simplejson v0.5.1 // indirect
@@ -22,12 +24,11 @@ require (
 
 require (
 	github.com/google/uuid v1.5.0
-	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/jonas747/dca v0.0.0-20210930103944-155f5e5f0cc7
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/kkdai/youtube/v2 v2.10.0
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
+	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 )

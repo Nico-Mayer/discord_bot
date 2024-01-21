@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/ClintonCollins/dca"
 	"github.com/bwmarrin/discordgo"
-	"github.com/jonas747/dca"
 )
 
 type PlayerStatus int32
@@ -50,9 +50,10 @@ func (p *Player) Play(query string, voiceState *discordgo.VoiceState) {
 
 	options := dca.StdEncodeOptions
 	options.RawOutput = true
-	options.Bitrate = 96
+	options.Bitrate = 128
 	options.Application = "lowdelay"
 	encodingSession, err := dca.EncodeFile(song.downloadUrl, options)
+
 	if err != nil {
 		log.Println("Error encoding from yt url")
 		log.Println(err)
@@ -75,6 +76,7 @@ func (p *Player) Play(query string, voiceState *discordgo.VoiceState) {
 
 	done := make(chan error)
 	stream := dca.NewStream(encodingSession, p.voiceConn, done)
+
 	p.currentStream = stream
 	log.Println("Created stream, waiting on finish or err")
 	p.PlayerStatus = Playing
