@@ -2,7 +2,6 @@ package nasen
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -22,25 +21,19 @@ func Nasen(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	user, err := db.GetUser(target.ID)
 	if err != nil {
-		log.Println(err)
-		utils.ReplyError(s, i, "Bre hat noch keine Clownsnasen! gib ihm eine mit `/clownsnase`")
+		utils.ReplyError(s, i, err, "Bre hat noch keine Clownsnasen! gib ihm eine mit `/clownsnase`")
 		return
 	}
 
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
-	if err != nil {
-		log.Println(err)
-	}
+	utils.Check(err)
 
 	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 		Content: "```" + generateTable(user, user.GetNasen()) + "```",
 	})
-	if err != nil {
-		log.Println(err)
-	}
-
+	utils.Check(err)
 }
 
 func generateTable(user db.User, nasen []db.Nase) string {
@@ -52,9 +45,7 @@ func generateTable(user db.User, nasen []db.Nase) string {
 
 	for _, nase := range nasen {
 		author, err := db.GetUser(nase.AuthorID)
-		if err != nil {
-			log.Println(err)
-		}
+		utils.Check(err)
 
 		date := fmt.Sprintf("%v", nase.Created.Format("02-Jan-06"))
 		t.AppendRow(table.Row{date, author.Name, nase.Reason})

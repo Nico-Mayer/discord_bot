@@ -1,12 +1,14 @@
 package utils
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func ReplyError(s *discordgo.Session, i *discordgo.InteractionCreate, msg string) {
+func ReplyError(s *discordgo.Session, i *discordgo.InteractionCreate, e error, msg string) {
+	log.Panicln(e)
+
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -14,7 +16,11 @@ func ReplyError(s *discordgo.Session, i *discordgo.InteractionCreate, msg string
 			Content: msg,
 		},
 	})
-	if err != nil {
-		fmt.Println(err)
+	Check(err)
+}
+
+func Check(e error) {
+	if e != nil {
+		log.Println(e)
 	}
 }

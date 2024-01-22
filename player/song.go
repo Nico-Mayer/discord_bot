@@ -7,7 +7,7 @@ import (
 )
 
 type Song struct {
-	name        string
+	Name        string
 	fullUrl     string
 	downloadUrl string
 	duration    time.Duration
@@ -22,7 +22,7 @@ func GetSongInfo(url string) (*Song, error) {
 	}
 
 	return &Song{
-		name:        sng.Title,
+		Name:        sng.Title,
 		fullUrl:     url,
 		downloadUrl: sng.Formats.WithAudioChannels()[0].URL,
 		duration:    sng.Duration,

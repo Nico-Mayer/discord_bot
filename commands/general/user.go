@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/db"
+	"github.com/nico-mayer/go_discordbot/utils"
 )
 
 func User(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -19,9 +20,7 @@ func User(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var dbUser db.User
 
 	dbUser, err := db.GetUser(target.ID)
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.Check(err)
 
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -48,7 +47,5 @@ func User(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.Check(err)
 }

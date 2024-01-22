@@ -26,15 +26,13 @@ func LiveGame(s *discordgo.Session, i *discordgo.InteractionCreate, golio *golio
 
 	summoner, err := golio.Riot.LoL.Summoner.GetByName(summonerName)
 	if err != nil {
-		fmt.Println(err)
-		utils.ReplyError(s, i, fmt.Sprintf("Summoner `%s` not found!", summonerName))
+		utils.ReplyError(s, i, err, fmt.Sprintf("Summoner `%s` not found!", summonerName))
 		return
 	}
 
 	liveGame, err := golio.Riot.LoL.Spectator.GetCurrent(summoner.ID)
 	if err != nil {
-		fmt.Println(err)
-		utils.ReplyError(s, i, fmt.Sprintf("`%s` is currently not in a game!", summonerName))
+		utils.ReplyError(s, i, err, fmt.Sprintf("`%s` is currently not in a game!", summonerName))
 		return
 	}
 
@@ -46,9 +44,7 @@ func replyLiveGame(s *discordgo.Session, i *discordgo.InteractionCreate, golio *
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.Check(err)
 
 	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 		Embeds: []*discordgo.MessageEmbed{
@@ -70,9 +66,7 @@ func replyLiveGame(s *discordgo.Session, i *discordgo.InteractionCreate, golio *
 			},
 		},
 	})
-	if err != nil {
-		panic(err)
-	}
+	utils.Check(err)
 }
 
 func getTeam(dd *datadragon.Client, liveGame *lol.GameInfo, teamID int) string {

@@ -2,12 +2,12 @@ package nasen
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/config"
 	"github.com/nico-mayer/go_discordbot/db"
+	"github.com/nico-mayer/go_discordbot/utils"
 )
 
 func Clownfiesta(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -18,9 +18,7 @@ func Clownfiesta(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	inVoice := false
 
 	guild, err := s.State.Guild(config.GUILD_ID)
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.Check(err)
 
 	for _, vs := range guild.VoiceStates {
 		if vs.UserID == author.ID {
@@ -29,9 +27,7 @@ func Clownfiesta(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			channel, _ := s.Channel(channelID)
 			channelName = channel.Name
 
-			if err != nil {
-				log.Println(err)
-			}
+			utils.Check(err)
 		}
 	}
 
@@ -43,18 +39,14 @@ func Clownfiesta(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
-		if err != nil {
-			log.Println(err)
-		}
+		utils.Check(err)
 		return
 	}
 
 	for _, vs := range guild.VoiceStates {
 		if vs.ChannelID == channelID {
 			user, err := s.User(vs.UserID)
-			if err != nil {
-				log.Println(err)
-			}
+			utils.Check(err)
 			usersInChannel = append(usersInChannel, db.User{
 				Name: user.Username,
 				ID:   user.ID,
@@ -63,10 +55,7 @@ func Clownfiesta(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	err = db.GiveNase(usersInChannel, author.ID, "Clownfiesta!")
-
-	if err != nil {
-		log.Println(err)
-	}
+	utils.Check(err)
 
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -84,10 +73,7 @@ func Clownfiesta(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
-
-	if err != nil {
-		log.Println(err)
-	}
+	utils.Check(err)
 }
 
 func buildList(users []db.User) string {

@@ -2,10 +2,10 @@ package nasen
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/db"
+	"github.com/nico-mayer/go_discordbot/utils"
 )
 
 func Clownsnase(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -33,14 +33,9 @@ func Clownsnase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	nasenCount, err := db.GetNasenCount(target.ID)
-	if err != nil {
-		log.Println(err)
-	}
-
+	utils.Check(err)
 	err = db.GiveNase([]db.User{target}, authorID, reason)
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.Check(err)
 
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -73,8 +68,5 @@ func Clownsnase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	utils.Check(err)
 }

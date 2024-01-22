@@ -2,11 +2,11 @@ package general
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/commands"
+	"github.com/nico-mayer/go_discordbot/utils"
 )
 
 func Help(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -38,8 +38,5 @@ func Help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	utils.Check(err)
 }

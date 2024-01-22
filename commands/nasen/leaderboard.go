@@ -2,26 +2,22 @@ package nasen
 
 import (
 	"fmt"
-	"log"
 
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/db"
+	"github.com/nico-mayer/go_discordbot/utils"
 )
 
 func Leaderboard(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
-	if err != nil {
-		log.Println(err)
-	}
+	utils.Check(err)
 
 	leaderboard, err := db.GetLeaderboard()
-	if err != nil {
-		log.Println(err)
-	}
+	utils.Check(err)
 
 	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 		Embeds: []*discordgo.MessageEmbed{
@@ -35,9 +31,7 @@ func Leaderboard(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.Check(err)
 }
 
 func formatLeaderboard(leaderboard []db.User) string {

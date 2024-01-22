@@ -1,13 +1,13 @@
 package player
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"time"
 
 	"github.com/ClintonCollins/dca"
 	"github.com/bwmarrin/discordgo"
+	"github.com/nico-mayer/go_discordbot/utils"
 )
 
 type PlayerStatus int32
@@ -27,6 +27,7 @@ type Player struct {
 	SkipInterrupt chan bool
 	currentStream *dca.StreamingSession
 	PlayerStatus  PlayerStatus
+	options       *dca.EncodeOptions
 }
 
 func NewPlayer(s *discordgo.Session) *Player {
@@ -35,41 +36,32 @@ func NewPlayer(s *discordgo.Session) *Player {
 		queue:         make(chan *Song, 100),
 		SkipInterrupt: make(chan bool, 1),
 		PlayerStatus:  Resting,
+		options: &dca.EncodeOptions{
+			Volume:           100,
+			Channels:         2,
+			FrameRate:        48000,
+			FrameDuration:    20,
+			Bitrate:          64,
+			Application:      dca.AudioApplicationLowDelay,
+			CompressionLevel: 7,
+			PacketLoss:       3,
+			BufferedFrames:   200,
+			VBR:              true,
+			StartTime:        0,
+			VolumeFloat:      1.0,
+			RawOutput:        true,
+		},
 	}
 }
 
-func (p *Player) Play(query string, voiceState *discordgo.VoiceState) {
+func (p *Player) Play(song *Song, voiceState *discordgo.VoiceState) error {
 	p.dequeue()
 
-	song, err := GetSongInfo(query)
-	log.Printf("Playing song: %v \n", song.name)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	var options = &dca.EncodeOptions{
-		Volume:           200,
-		Channels:         2,
-		FrameRate:        48000,
-		FrameDuration:    20,
-		Bitrate:          64,
-		Application:      dca.AudioApplicationLowDelay,
-		CompressionLevel: 10,
-		PacketLoss:       3,
-		BufferedFrames:   200,
-		VBR:              true,
-		StartTime:        0,
-		VolumeFloat:      0.5,
-		RawOutput:        true,
-	}
-
-	encodingSession, err := dca.EncodeFile(song.downloadUrl, options)
-
+	encodingSession, err := dca.EncodeFile(song.downloadUrl, p.options)
 	if err != nil {
 		log.Println("Error encoding from yt url")
 		log.Println(err)
-		return
+		return err
 	}
 
 	defer encodingSession.Cleanup()
@@ -78,13 +70,11 @@ func (p *Player) Play(query string, voiceState *discordgo.VoiceState) {
 	if err != nil {
 		log.Println("Error joining voice channel")
 		log.Println(err)
-		return
+		return err
 	}
 	time.Sleep(250 * time.Millisecond)
 	err = p.voiceConn.Speaking(true)
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.Check(err)
 
 	done := make(chan error)
 	stream := dca.NewStream(encodingSession, p.voiceConn, done)
@@ -93,14 +83,13 @@ func (p *Player) Play(query string, voiceState *discordgo.VoiceState) {
 	log.Println("Created stream, waiting on finish or err")
 	p.PlayerStatus = Playing
 
-	/* log.Printf("EncodingSession:  #%v", encodingSession)
-	log.Printf("Stream: #%v", stream) */
-
 	err = <-done
 	if err != nil && err != io.EOF {
-		fmt.Println(err)
+		log.Println(err)
+		return err
 	}
 
+	return nil
 }
 
 func (p *Player) dequeue() *Song {

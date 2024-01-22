@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +17,7 @@ import (
 	"github.com/nico-mayer/go_discordbot/config"
 	"github.com/nico-mayer/go_discordbot/levels"
 	"github.com/nico-mayer/go_discordbot/player"
+	"github.com/nico-mayer/go_discordbot/utils"
 )
 
 var session *discordgo.Session
@@ -69,9 +69,7 @@ func Run() {
 	}
 
 	err = session.UpdateGameStatus(0, "mit seinem Zipfel")
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.Check(err)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

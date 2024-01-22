@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/db"
+	"github.com/nico-mayer/go_discordbot/utils"
 )
 
 const (
@@ -36,26 +37,18 @@ func Init(s *discordgo.Session) {
 		}
 
 		user, err := db.GetUser(m.Author.ID)
-		if err != nil {
-			fmt.Println(err)
-		}
+		utils.Check(err)
 
 		if !user.InDatabase() {
 			err := db.InsertUser(m.Author.ID, m.Author.Username)
-			if err != nil {
-				fmt.Println(err)
-			}
+			utils.Check(err)
 			user, err = db.GetUser(m.Author.ID)
-			if err != nil {
-				fmt.Println(err)
-			}
+			utils.Check(err)
 		}
 
 		user.GiveExp(expPerMessage)
 		newLevel, _, levelUp, err := user.CalcLevel(expNeededPerLevel)
-		if err != nil {
-			fmt.Println(err)
-		}
+		utils.Check(err)
 
 		if levelUp {
 			handleLevelUp(newLevel, s, m.GuildID, user)
@@ -73,26 +66,18 @@ func Init(s *discordgo.Session) {
 			}
 
 			user, err := db.GetUser(v.UserID)
-			if err != nil {
-				fmt.Println(err)
-			}
+			utils.Check(err)
 
 			if !user.InDatabase() {
 				err := db.InsertUser(v.UserID, v.Member.User.Username)
-				if err != nil {
-					fmt.Println(err)
-				}
+				utils.Check(err)
 				user, err = db.GetUser(v.UserID)
-				if err != nil {
-					fmt.Println(err)
-				}
+				utils.Check(err)
 			}
 
 			user.GiveExp(expPerVoiceJoin)
 			newLevel, _, levelUp, err := user.CalcLevel(expNeededPerLevel)
-			if err != nil {
-				fmt.Println(err)
-			}
+			utils.Check(err)
 
 			if levelUp {
 				handleLevelUp(newLevel, s, v.GuildID, user)
