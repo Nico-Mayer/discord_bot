@@ -18,8 +18,8 @@ type Player struct {
 	Session       *discordgo.Session
 	voiceConn     *discordgo.VoiceConnection
 	queue         chan *Song
-	queueList     []string
-	SkipInterrupt chan bool
+	QueueList     []string
+	skipInterrupt chan bool
 	currentStream *dca.StreamingSession
 	PlayerStatus  PlayerStatus
 	options       *dca.EncodeOptions
@@ -29,7 +29,7 @@ func NewPlayer(s *discordgo.Session) *Player {
 	return &Player{
 		Session:       s,
 		queue:         make(chan *Song, 100),
-		SkipInterrupt: make(chan bool, 1),
+		skipInterrupt: make(chan bool, 1),
 		PlayerStatus:  Resting,
 		options: &dca.EncodeOptions{
 			Volume:           100,
@@ -47,12 +47,6 @@ func NewPlayer(s *discordgo.Session) *Player {
 			RawOutput:        true,
 		},
 	}
-}
-
-func (p *Player) Stop() {
-	p.voiceConn.Disconnect()
-	p.voiceConn = nil
-	p.PlayerStatus = Resting
 }
 
 func (p *Player) JoinChannel(vs *discordgo.VoiceState) error {

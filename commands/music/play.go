@@ -2,6 +2,7 @@ package music
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/player"
@@ -40,7 +41,7 @@ func Play(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player
 			{
 				Type:        discordgo.EmbedTypeRich,
 				Title:       "▶️ Playing",
-				Description: fmt.Sprintf("[%s](%s)", song.Name, song.FullUrl),
+				Description: formatDesc(song, p),
 				Color:       0xff0001,
 				Thumbnail: &discordgo.MessageEmbedThumbnail{
 					URL:    song.Thumbnail.URL,
@@ -54,4 +55,21 @@ func Play(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player
 
 	p.Enqueue(song)
 	p.Play()
+}
+
+func formatDesc(song *player.Song, player *player.Player) string {
+	var sb strings.Builder
+
+	heading := fmt.Sprintf("[%s](%s) \n", song.Name, song.FullUrl)
+
+	sb.WriteString(heading)
+
+	sb.WriteString("📃 Warteschlange: \n \n")
+
+	for _, s := range player.QueueList {
+		line := fmt.Sprintf("%s \n", s)
+		sb.WriteString(line)
+	}
+
+	return sb.String()
 }

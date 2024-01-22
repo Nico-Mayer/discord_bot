@@ -10,7 +10,6 @@ import (
 )
 
 func (p *Player) Play() {
-
 	if p.PlayerStatus != Resting {
 		return
 	}
@@ -55,7 +54,7 @@ func (p *Player) Play() {
 		p.voiceConn.Speaking(false)
 		break
 
-	case <-p.SkipInterrupt:
+	case <-p.skipInterrupt:
 		// Case 2: Song is interrupted.
 		log.Println("Song interrupted, stop playing")
 
