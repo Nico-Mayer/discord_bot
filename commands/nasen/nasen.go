@@ -31,9 +31,21 @@ func Nasen(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	utils.Check(err)
 
 	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-		Content: "```" + generateTable(user, user.GetNasen()) + "```",
+		Content: getDesc(user),
 	})
 	utils.Check(err)
+}
+
+func getDesc(user db.User) string {
+	var sb strings.Builder
+
+	heading := fmt.Sprintf("Alle Clownsnasen von <@%s> \n", user.ID)
+	sb.WriteString(heading)
+	sb.WriteString("```\n")
+	sb.WriteString(generateTable(user, user.GetNasen()))
+	sb.WriteString("```")
+
+	return sb.String()
 }
 
 func generateTable(user db.User, nasen []db.Nase) string {
@@ -42,6 +54,8 @@ func generateTable(user db.User, nasen []db.Nase) string {
 	t.SetOutputMirror(&tableString)
 	t.AppendHeader(table.Row{"Datum", "Von", "Grund"})
 	t.SetStyle(table.StyleLight)
+	t.Style().Options.SeparateRows = true
+	t.SetAutoIndex(true)
 
 	for _, nase := range nasen {
 		author, err := db.GetUser(nase.AuthorID)
