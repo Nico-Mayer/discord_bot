@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 
 	_ "github.com/lib/pq"
 	"github.com/nico-mayer/go_discordbot/config"
@@ -23,6 +23,6 @@ func Connect() error {
 		return err
 	}
 
-	fmt.Println("Successfully connected to database")
+	log.Println("Successfully connected to database")
 	return nil
 }

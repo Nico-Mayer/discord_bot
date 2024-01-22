@@ -7,7 +7,7 @@ import (
 )
 
 func ReplyError(s *discordgo.Session, i *discordgo.InteractionCreate, e error, msg string) {
-	log.Panicln(e)
+	log.Println(e)
 
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

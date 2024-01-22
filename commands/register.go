@@ -103,6 +103,9 @@ func RegisterCommands(session *discordgo.Session) {
 						Required:    true,
 					},
 				},
+			}, {
+				Name:        "stop",
+				Description: "Stoppt DJ Rosine",
 			},
 		},
 	}

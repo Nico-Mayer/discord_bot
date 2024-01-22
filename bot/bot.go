@@ -53,6 +53,8 @@ func Run() {
 			nasen.Nasen(s, i)
 		case "play":
 			music.Play(s, i, player)
+		case "stop":
+			music.Stop(s, i, player)
 		case "live_game":
 			lol.LiveGame(s, i, golio)
 		default:

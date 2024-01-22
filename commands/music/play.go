@@ -1,6 +1,8 @@
 package music
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/player"
 	"github.com/nico-mayer/go_discordbot/utils"
@@ -20,6 +22,7 @@ func Play(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player
 		utils.ReplyError(s, i, err, "Du musst in einem Voice Channel sein um Musik abspielen zu können.")
 		return
 	}
+	p.JoinChannel(voiceState)
 
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
@@ -35,16 +38,20 @@ func Play(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player
 	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 		Embeds: []*discordgo.MessageEmbed{
 			{
-				Type:  discordgo.EmbedTypeRich,
-				Title: song.Name,
+				Type:        discordgo.EmbedTypeRich,
+				Title:       "▶️ Playing",
+				Description: fmt.Sprintf("[%s](%s)", song.Name, song.FullUrl),
+				Color:       0xff0001,
+				Thumbnail: &discordgo.MessageEmbedThumbnail{
+					URL:    song.Thumbnail.URL,
+					Width:  int(song.Thumbnail.Width),
+					Height: int(song.Thumbnail.Height),
+				},
 			},
 		},
 	})
 	utils.Check(err)
 
-	err = p.Play(song, voiceState)
-	if err != nil {
-		utils.ReplyError(s, i, err, "Something went wrong playing your song.")
-		return
-	}
+	p.Enqueue(song)
+	p.Play()
 }
