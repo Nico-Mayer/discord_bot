@@ -57,6 +57,10 @@ func Run() {
 			music.Stop(s, i, player)
 		case "skip":
 			music.Skip(s, i, player)
+		case "pause":
+			music.Pause(s, i, player)
+		case "resume":
+			music.Resume(s, i, player)
 		case "live_game":
 			lol.LiveGame(s, i, golio)
 		default:

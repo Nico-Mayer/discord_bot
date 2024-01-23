@@ -109,6 +109,12 @@ func RegisterCommands(session *discordgo.Session) {
 			}, {
 				Name:        "skip",
 				Description: "⏭️ Überspringt zum nächsten Song in der Warteschlange.",
+			}, {
+				Name:        "pause",
+				Description: "⏸️ Pausiert DJ-Rosine",
+			}, {
+				Name:        "resume",
+				Description: "▶️ Widergabe fortsetzen",
 			},
 		},
 	}

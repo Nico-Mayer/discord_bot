@@ -40,7 +40,7 @@ func Play(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player
 		Embeds: []*discordgo.MessageEmbed{
 			{
 				Type:        discordgo.EmbedTypeRich,
-				Title:       "▶️ Playing",
+				Title:       "▶️ - Playing",
 				Description: formatDesc(song, p),
 				Color:       0xff0001,
 				Thumbnail: &discordgo.MessageEmbedThumbnail{
@@ -52,7 +52,6 @@ func Play(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player
 		},
 	})
 	utils.Check(err)
-
 	p.Enqueue(song)
 	p.Play()
 }
@@ -64,7 +63,8 @@ func formatDesc(song *player.Song, player *player.Player) string {
 
 	sb.WriteString(heading)
 
-	sb.WriteString("📃 Warteschlange: \n \n")
+	sb.WriteString("\n📃 Warteschlange: \n \n")
+	sb.WriteString(fmt.Sprintf("%s \n", song.Name))
 
 	for _, s := range player.QueueList {
 		line := fmt.Sprintf("%s \n", s)
