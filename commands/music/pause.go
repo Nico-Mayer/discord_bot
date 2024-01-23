@@ -10,7 +10,7 @@ func Pause(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Playe
 
 	err := p.Pause()
 	if err != nil {
-		utils.ReplyError(s, i, err, "DJ-Rosine spielt aktuell keinen banger der pausiert werden kann")
+		utils.ReplyError(s, i, err, "DJ Rosine spielt aktuell keinen Banger, der pausiert werden kann")
 		return
 	}
 
@@ -21,7 +21,7 @@ func Pause(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Playe
 				{
 					Type:        discordgo.EmbedTypeRich,
 					Title:       "⏸️ - Paused",
-					Description: "`/resume` to continue playing",
+					Description: "`/resume`  um die Wiedergabe fortzusetzen",
 				},
 			},
 		},

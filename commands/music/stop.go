@@ -13,7 +13,7 @@ func Stop(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "Tschüss euer DJ Rosine",
+			Content: "Tschüss, euer DJ Rosine",
 		},
 	})
 	utils.Check(err)

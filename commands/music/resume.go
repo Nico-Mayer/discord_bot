@@ -9,7 +9,7 @@ import (
 func Resume(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
 	err := p.Resume()
 	if err != nil {
-		utils.ReplyError(s, i, err, "DJ-Rosine ist aktuell nicht pausiert")
+		utils.ReplyError(s, i, err, "DJ Rosine ist aktuell nicht pausiert")
 		return
 	}
 

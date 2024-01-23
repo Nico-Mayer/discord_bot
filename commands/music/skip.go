@@ -19,7 +19,7 @@ func Skip(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player
 	err = p.Skip()
 	if err != nil {
 		log.Println(err)
-		msg = "Kein song in der Warteschlange"
+		msg = "Kein Song in der Warteschlange"
 	}
 
 	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{

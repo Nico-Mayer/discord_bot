@@ -94,27 +94,27 @@ func RegisterCommands(session *discordgo.Session) {
 		Commands: []*discordgo.ApplicationCommand{
 			{
 				Name:        "play",
-				Description: "▶️ Spielt einen Song ab.",
+				Description: "▶ Startet die Wiedergabe eines Songs.",
 				Options: []*discordgo.ApplicationCommandOption{
 					{
 						Type:        discordgo.ApplicationCommandOptionString,
 						Name:        "url",
-						Description: "Gib eine Youtube URL ein, um den Song zu spielen. 🎤🔍",
+						Description: "🔍 Gib eine YouTube-URL ein, um den Song abzuspielen",
 						Required:    true,
 					},
 				},
 			}, {
 				Name:        "stop",
-				Description: "🛑 Stoppt DJ Rosine.",
+				Description: "⏹️ Stoppt DJ Rosine",
 			}, {
 				Name:        "skip",
-				Description: "⏭️ Überspringt zum nächsten Song in der Warteschlange.",
+				Description: "⏭️ Springt zum nächsten Song in der Warteschlange",
 			}, {
 				Name:        "pause",
-				Description: "⏸️ Pausiert DJ-Rosine",
+				Description: "⏯️ Pausiert DJ-Rosine",
 			}, {
 				Name:        "resume",
-				Description: "▶️ Widergabe fortsetzen",
+				Description: "⏯️ Setzt die Wiedergabe fort",
 			},
 		},
 	}

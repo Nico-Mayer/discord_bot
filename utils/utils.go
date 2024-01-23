@@ -19,6 +19,16 @@ func ReplyError(s *discordgo.Session, i *discordgo.InteractionCreate, e error, m
 	Check(err)
 }
 
+func ReplyDeferredError(s *discordgo.Session, i *discordgo.InteractionCreate, e error, msg string) {
+	log.Println(e)
+
+	_, err := s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+		Content: msg,
+		Flags:   discordgo.MessageFlagsEphemeral,
+	})
+	Check(err)
+}
+
 func Check(e error) {
 	if e != nil {
 		log.Println(e)
