@@ -16,12 +16,12 @@ const (
 
 type Player struct {
 	Session       *discordgo.Session
+	QueueList     []string
+	PlayerStatus  PlayerStatus
 	voiceConn     *discordgo.VoiceConnection
 	queue         chan *Song
-	QueueList     []string
 	skipInterrupt chan bool
 	currentStream *dca.StreamingSession
-	PlayerStatus  PlayerStatus
 	options       *dca.EncodeOptions
 }
 

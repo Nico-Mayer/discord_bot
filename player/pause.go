@@ -4,7 +4,7 @@ import "fmt"
 
 func (p *Player) Pause() error {
 	if p.PlayerStatus != Playing {
-		err := fmt.Errorf("CANT PAUSE, BECAUSE NO SNOG IS PLAYED CURRENTLY")
+		err := fmt.Errorf("CANT PAUSE, BECAUSE NO SONG IS PLAYED CURRENTLY")
 		return err
 	}
 

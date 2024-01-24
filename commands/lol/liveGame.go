@@ -37,7 +37,6 @@ func LiveGame(s *discordgo.Session, i *discordgo.InteractionCreate, golio *golio
 	}
 
 	replyLiveGame(s, i, golio, liveGame, summoner)
-
 }
 
 func replyLiveGame(s *discordgo.Session, i *discordgo.InteractionCreate, golio *golio.Client, liveGame *lol.GameInfo, summoner *lol.Summoner) {
