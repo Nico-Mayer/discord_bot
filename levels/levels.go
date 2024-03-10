@@ -1,8 +1,6 @@
 package levels
 
 import (
-	"fmt"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/nico-mayer/go_discordbot/db"
 	"github.com/nico-mayer/go_discordbot/utils"
@@ -90,26 +88,15 @@ func handleLevelUp(newLevel int, s *discordgo.Session, guildID string, user db.U
 	switch newLevel {
 	case 20:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
-		congratulate(s, user, newLevel)
 	case 40:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
-		congratulate(s, user, newLevel)
 	case 60:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
-		congratulate(s, user, newLevel)
 	case 80:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
-		congratulate(s, user, newLevel)
 	case 100:
 		s.GuildMemberRoleAdd(guildID, user.ID, levelMapping[newLevel])
-		congratulate(s, user, newLevel)
 	default:
 		return
 	}
-}
-
-func congratulate(s *discordgo.Session, user db.User, newLevel int) {
-	message := fmt.Sprintf("<@%s> ist jetzt Level %d! 🎉", user.ID, newLevel)
-
-	s.ChannelMessageSend(commandsChannelId, message)
 }
