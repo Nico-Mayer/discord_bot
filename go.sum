@@ -40,6 +40,8 @@ github.com/jonas747/ogg v0.0.0-20161220051205-b4f6f4cf3757 h1:Kyv+zTfWIGRNaz/4+l
 github.com/jonas747/ogg v0.0.0-20161220051205-b4f6f4cf3757/go.mod h1:cZnNmdLiLpihzgIVqiaQppi9Ts3D4qF/M45//yW35nI=
 github.com/kkdai/youtube/v2 v2.10.0 h1:s8gSWo3AxIafK560XwDVnha9aPXp3N2HQAh1x81R5Og=
 github.com/kkdai/youtube/v2 v2.10.0/go.mod h1:H5MLUXiXYuovcEhQT/uZf7BC/syIbAJlDKCDsG+WDsU=
+github.com/kkdai/youtube/v2 v2.10.1 h1:jdPho4R7VxWoRi9Wx4ULMq4+hlzSVOXxh4Zh83f2F9M=
+github.com/kkdai/youtube/v2 v2.10.1/go.mod h1:qL8JZv7Q1IoDs4nnaL51o/hmITXEIvyCIXopB0oqgVM=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
@@ -63,6 +65,7 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
+github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b/go.mod h1:T9bdIzuCu7OtxOm1hfPfRQxPLYneinmdGuTeoZ9dtd4=

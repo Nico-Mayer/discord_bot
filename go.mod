@@ -27,7 +27,7 @@ require (
 require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.1 // indirect
-	github.com/kkdai/youtube/v2 v2.10.0
+	github.com/kkdai/youtube/v2 v2.10.1
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
