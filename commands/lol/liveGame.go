@@ -9,6 +9,7 @@ import (
 	"github.com/KnutZuidema/golio/datadragon"
 	"github.com/KnutZuidema/golio/riot/lol"
 	"github.com/bwmarrin/discordgo"
+	"github.com/nico-mayer/go_discordbot/db"
 	"github.com/nico-mayer/go_discordbot/utils"
 )
 
@@ -18,21 +19,30 @@ const (
 )
 
 func LiveGame(s *discordgo.Session, i *discordgo.InteractionCreate, golio *golio.Client) {
-	var summonerName string
+
+	var target *discordgo.User
 
 	for _, option := range i.ApplicationCommandData().Options {
-		summonerName = option.StringValue()
+		if option.Type == discordgo.ApplicationCommandOptionUser {
+			target = option.UserValue(s)
+		}
 	}
 
-	summoner, err := golio.Riot.LoL.Summoner.GetByName(summonerName)
+	dbUser, err := db.GetUser(target.ID)
 	if err != nil {
-		utils.ReplyError(s, i, err, fmt.Sprintf("Summoner `%s` not found!", summonerName))
+		utils.ReplyError(s, i, err, fmt.Sprintf("User %s not found in database", target.GlobalName))
+		return
+	}
+
+	summoner, err := golio.Riot.LoL.Summoner.GetByPUUID(dbUser.RiotPUUID)
+	if err != nil {
+		utils.ReplyError(s, i, err, fmt.Sprintf("User %s has no riot puuid set in database, pls contact the admin.", target.GlobalName))
 		return
 	}
 
 	liveGame, err := golio.Riot.LoL.Spectator.GetCurrent(summoner.ID)
 	if err != nil {
-		utils.ReplyError(s, i, err, fmt.Sprintf("`%s` is currently not in a game!", summonerName))
+		utils.ReplyError(s, i, err, fmt.Sprintf("`%s` is currently not in a game!", target.GlobalName))
 		return
 	}
 

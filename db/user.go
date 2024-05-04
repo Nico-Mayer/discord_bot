@@ -10,6 +10,7 @@ type User struct {
 	NasenCount int    `json:"nasen_count"`
 	Exp        int    `json:"exp"`
 	Level      int    `json:"level"`
+	RiotPUUID  string `json:"riot_puuid"`
 }
 
 func InsertUser(id string, username string) error {
@@ -52,7 +53,7 @@ func (user *User) GetNasen() []Nase {
 func GetUser(id string) (User, error) {
 	var user User
 	query := "SELECT * FROM users WHERE id = $1"
-	err := DB.QueryRow(query, id).Scan(&user.ID, &user.Name, &user.Exp, &user.Level)
+	err := DB.QueryRow(query, id).Scan(&user.ID, &user.Name, &user.Exp, &user.Level, &user.RiotPUUID)
 	if err != nil {
 		return user, err
 	}

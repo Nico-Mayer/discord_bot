@@ -119,7 +119,7 @@ func RegisterCommands(session *discordgo.Session) {
 		},
 	}
 
-	lol := Collection{
+	/* lol := Collection{
 		Name: "League of Legends",
 		Icon: '🎮',
 		Commands: []*discordgo.ApplicationCommand{
@@ -128,20 +128,20 @@ func RegisterCommands(session *discordgo.Session) {
 				Description: "Zeigt Informationen über das aktuelle Spiel an.",
 				Options: []*discordgo.ApplicationCommandOption{
 					{
-						Type:        discordgo.ApplicationCommandOptionString,
-						Name:        "summoner",
-						Description: "Gib den Summoner Namen an.",
+						Type:        discordgo.ApplicationCommandOptionUser,
+						Name:        "user",
+						Description: "Wähle den User aus, dessen aktuelles LoL Game du sehen möchtest.",
 						Required:    true,
 					},
 				},
 			},
 		},
-	}
+	} */
 
 	Collections = append(Collections, general)
 	Collections = append(Collections, nasen)
 	Collections = append(Collections, music)
-	Collections = append(Collections, lol)
+	// Collections = append(Collections, lol)
 
 	var commands []*discordgo.ApplicationCommand
 	for _, collection := range Collections {
