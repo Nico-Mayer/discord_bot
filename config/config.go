@@ -8,9 +8,14 @@ import (
 )
 
 var (
-	TOKEN    string
-	APP_ID   snowflake.ID
-	GUILD_ID snowflake.ID
+	TOKEN      string
+	APP_ID     snowflake.ID
+	GUILD_ID   snowflake.ID
+	PGUSER     string
+	PGPASSWORD string
+	PGDATABASE string
+	PGHOST     string
+	PGPORT     string
 )
 
 func init() {
@@ -19,4 +24,9 @@ func init() {
 	TOKEN = os.Getenv("TOKEN")
 	APP_ID = snowflake.GetEnv("APP_ID")
 	GUILD_ID = snowflake.GetEnv("GUILD_ID")
+	PGUSER = os.Getenv("PGUSER")
+	PGPASSWORD = os.Getenv("PGPASSWORD")
+	PGDATABASE = os.Getenv("PGDATABASE")
+	PGHOST = os.Getenv("PGHOST")
+	PGPORT = os.Getenv("PGPORT")
 }

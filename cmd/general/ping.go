@@ -5,6 +5,7 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+	"github.com/nico-mayer/discordbot/db"
 )
 
 var PingCommand = discord.SlashCommandCreate{
@@ -12,15 +13,17 @@ var PingCommand = discord.SlashCommandCreate{
 	Description: "answers with pong",
 }
 
-func PingCommandListener(event *events.ApplicationCommandInteractionCreate) {
-	data := event.SlashCommandInteractionData()
-	if data.CommandName() == PingCommand.Name {
-		err := event.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("pong").
-			Build(),
-		)
-		if err != nil {
-			slog.Error("error on sending response", slog.Any("err", err))
-		}
+func PingCommandExecute(event *events.ApplicationCommandInteractionCreate) {
+
+	user, _ := db.GetUser("488328811063148554")
+
+	slog.Info(user.Name)
+
+	err := event.CreateMessage(discord.NewMessageCreateBuilder().
+		SetContent("pong").
+		Build(),
+	)
+	if err != nil {
+		slog.Error("error on sending response", slog.Any("err", err))
 	}
 }

@@ -7,12 +7,14 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/nico-mayer/discordbot/cmd/general"
+	"github.com/nico-mayer/discordbot/cmd/music"
 )
 
 var commands = []discord.ApplicationCommandCreate{
 	general.SayCommand,
 	general.PingCommand,
 	general.HelpCommand,
+	music.PlayCommand,
 }
 
 func RegisterSlashCommands(client bot.Client, guildID snowflake.ID) {

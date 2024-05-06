@@ -24,16 +24,16 @@ var SayCommand = discord.SlashCommandCreate{
 	},
 }
 
-func SayCommandListener(event *events.ApplicationCommandInteractionCreate) {
+func SayCommandExecute(event *events.ApplicationCommandInteractionCreate) {
 	data := event.SlashCommandInteractionData()
-	if data.CommandName() == "say" {
-		err := event.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent(data.String("message")).
-			SetEphemeral(data.Bool("ephemeral")).
-			Build(),
-		)
-		if err != nil {
-			slog.Error("error on sending response", slog.Any("err", err))
-		}
+
+	err := event.CreateMessage(discord.NewMessageCreateBuilder().
+		SetContent(data.String("message")).
+		SetEphemeral(data.Bool("ephemeral")).
+		Build(),
+	)
+	if err != nil {
+		slog.Error("error on sending response", slog.Any("err", err))
+
 	}
 }
