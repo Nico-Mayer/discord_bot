@@ -23,7 +23,6 @@ var UserCommand = discord.SlashCommandCreate{
 func UserCommandExecute(event *events.ApplicationCommandInteractionCreate) {
 	data := event.SlashCommandInteractionData()
 
-	event.DeferCreateMessage(true)
 	targetUser := data.User("user")
 
 	if targetUser.Bot {
@@ -37,7 +36,16 @@ func UserCommandExecute(event *events.ApplicationCommandInteractionCreate) {
 		}
 	}
 
-	/* event.MessageCommandInteractionData().TargetID()
-	event.Client().Rest().UpdateInteractionResponse(config.APP_ID)
-	*/
+	event.CreateMessage(discord.MessageCreate{
+		Content: "Hallo",
+		Embeds: []discord.Embed{
+			{
+				Title:       "User",
+				Description: "User stats",
+				Thumbnail: &discord.EmbedResource{
+					URL: *targetUser.AvatarURL(),
+				},
+			},
+		},
+	})
 }
