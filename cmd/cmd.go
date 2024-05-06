@@ -14,6 +14,7 @@ var commands = []discord.ApplicationCommandCreate{
 	general.SayCommand,
 	general.PingCommand,
 	general.HelpCommand,
+	general.UserCommand,
 	music.PlayCommand,
 }
 

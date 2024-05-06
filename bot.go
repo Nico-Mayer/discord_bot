@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 	"github.com/nico-mayer/discordbot/cmd/general"
 	"github.com/nico-mayer/discordbot/cmd/music"
 	"github.com/nico-mayer/discordbot/config"
+	"github.com/nico-mayer/discordbot/db"
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
@@ -23,14 +25,40 @@ func main() {
 
 	// Initialize bot client
 	client, err := disgo.New(config.TOKEN,
-		bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuildVoiceStates)),
-		// Add listener for slash commands
+		bot.WithDefaultGateway(),
+		bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuildVoiceStates, gateway.IntentGuildMessages)),
+
+		// Voice join listener
+		bot.WithEventListenerFunc(func(event *events.GuildVoiceJoin) {}),
+
+		// Message created listener
+		bot.WithEventListenerFunc(func(event *events.MessageCreate) {
+			author := event.Message.Author
+
+			if author.Bot {
+				return
+			}
+
+			userInDatabase := db.UserInDatabase(author.ID.String())
+
+			if userInDatabase {
+				dbuser, err := db.GetUser(author.ID.String())
+				if err != nil {
+					slog.Error("fetching user from database")
+				}
+				fmt.Println(dbuser.Level)
+			}
+		}),
+
+		// Slash command listener
 		bot.WithEventListenerFunc(func(event *events.ApplicationCommandInteractionCreate) {
 			data := event.SlashCommandInteractionData()
 
 			switch data.CommandName() {
 			case "help":
 				general.HelpCommandExecute(event)
+			case "user":
+				general.UserCommandExecute(event)
 			case "ping":
 				general.PingCommandExecute(event)
 			case "say":

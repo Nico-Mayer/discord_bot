@@ -9,7 +9,7 @@ type DBUser struct {
 	RiotPUUID  string `json:"riot_puuid"`
 }
 
-func InsertUser(discordUserID string, username string) error {
+func InsertDBUser(discordUserID string, username string) error {
 	query := "INSERT INTO users (id, name) VALUES ($1, $2)"
 	_, err := DB.Exec(query, discordUserID, username)
 	if err != nil {

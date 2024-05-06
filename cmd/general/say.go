@@ -34,6 +34,5 @@ func SayCommandExecute(event *events.ApplicationCommandInteractionCreate) {
 	)
 	if err != nil {
 		slog.Error("error on sending response", slog.Any("err", err))
-
 	}
 }
