@@ -39,10 +39,10 @@ func main() {
 				return
 			}
 
-			userInDatabase := db.UserInDatabase(author.ID.String())
+			userInDatabase := db.UserInDatabase(author.ID)
 
 			if userInDatabase {
-				dbuser, err := db.GetUser(author.ID.String())
+				dbuser, err := db.GetUser(author.ID)
 				if err != nil {
 					slog.Error("fetching user from database")
 				}
