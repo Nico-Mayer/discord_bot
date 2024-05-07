@@ -37,7 +37,6 @@ func UserCommandExecute(event *events.ApplicationCommandInteractionCreate) {
 	}
 
 	event.CreateMessage(discord.MessageCreate{
-		Content: "Hallo",
 		Embeds: []discord.Embed{
 			{
 				Title:       "User",
