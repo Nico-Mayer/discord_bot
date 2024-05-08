@@ -12,7 +12,7 @@ var PingCommand = discord.SlashCommandCreate{
 	Description: "answers with pong",
 }
 
-func PingCommandExecute(event *events.ApplicationCommandInteractionCreate) {
+func PingCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 	err := event.CreateMessage(discord.NewMessageCreateBuilder().
 		SetContent("pong").
 		Build(),

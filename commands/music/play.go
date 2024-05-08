@@ -19,7 +19,7 @@ var PlayCommand = discord.SlashCommandCreate{
 	Description: "play music",
 }
 
-func PlayCommandExecute(event *events.ApplicationCommandInteractionCreate) {
+func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 	client := event.Client()
 	conn := client.VoiceManager().CreateConn(config.GUILD_ID)
 

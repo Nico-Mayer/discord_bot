@@ -24,7 +24,7 @@ var SayCommand = discord.SlashCommandCreate{
 	},
 }
 
-func SayCommandExecute(event *events.ApplicationCommandInteractionCreate) {
+func SayCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 	data := event.SlashCommandInteractionData()
 
 	err := event.CreateMessage(discord.NewMessageCreateBuilder().

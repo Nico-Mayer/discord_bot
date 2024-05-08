@@ -22,7 +22,7 @@ var UserCommand = discord.SlashCommandCreate{
 	},
 }
 
-func UserCommandExecute(event *events.ApplicationCommandInteractionCreate) {
+func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 	data := event.SlashCommandInteractionData()
 	targetUser := data.User("user")
 
