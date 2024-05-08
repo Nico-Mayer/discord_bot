@@ -18,7 +18,10 @@ func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate
 		event.CreateMessage(discord.MessageCreate{
 			Content: "You need to be in a voice channel to use this command",
 		})
+		return
 	}
+
+	// Get all members in the voice channel
 
 	event.DeferCreateMessage(false)
 }
