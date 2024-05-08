@@ -4,15 +4,33 @@ import (
 	"time"
 
 	"github.com/disgoorg/snowflake/v2"
-	"github.com/google/uuid"
 )
 
 type Nase struct {
-	ID       uuid.UUID `json:"id"`
-	UserID   string    `json:"userid"`
-	AuthorID string    `json:"authorid"`
-	Reason   string    `json:"reason"`
-	Created  time.Time `json:"created"`
+	ID       snowflake.ID `json:"id"`
+	UserID   snowflake.ID `json:"userid"`
+	AuthorID snowflake.ID `json:"authorid"`
+	Reason   string       `json:"reason"`
+	Created  time.Time    `json:"created"`
+}
+
+func InsertNase(nase Nase) error {
+	var query string
+	var err error
+
+	if nase.Reason == "" {
+		query = "INSERT INTO nasen (id, userid, authorid, created) VALUES ($1, $2, $3, $4)"
+		_, err = DB.Exec(query, nase.ID, nase.UserID, nase.AuthorID, nase.Created)
+	} else {
+		query = "INSERT INTO nasen (id, userid, authorid, reason, created) VALUES ($1, $2, $3, $4, $5)"
+		_, err = DB.Exec(query, nase.ID, nase.UserID, nase.AuthorID, nase.Reason, nase.Created)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetNasenForUser(dbUserID snowflake.ID) ([]Nase, error) {

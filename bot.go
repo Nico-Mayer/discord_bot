@@ -10,6 +10,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
 	"github.com/nico-mayer/discordbot/commands/general"
+	"github.com/nico-mayer/discordbot/commands/nasen"
 	"github.com/nico-mayer/discordbot/config"
 )
 
@@ -27,10 +28,12 @@ func (b *Bot) SetupBot() {
 
 	// Setup Slash Handlers
 	b.Handlers = map[string]func(event *events.ApplicationCommandInteractionCreate){
-		"ping": general.PingCommandHandler,
-		"user": general.UserCommandHandler,
-		"help": general.HelpCommandHandler,
-		"say":  general.SayCommandHandler,
+		"ping":        general.PingCommandHandler,
+		"user":        general.UserCommandHandler,
+		"help":        general.HelpCommandHandler,
+		"say":         general.SayCommandHandler,
+		"clownsnase":  nasen.ClownsnaseCommandHandler,
+		"clownfiesta": nasen.ClownfiestaCommandHandler,
 	}
 
 	// Initialize bot client

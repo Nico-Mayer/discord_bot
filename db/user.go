@@ -1,14 +1,18 @@
 package db
 
-import "github.com/disgoorg/snowflake/v2"
+import (
+	"database/sql"
+
+	"github.com/disgoorg/snowflake/v2"
+)
 
 type DBUser struct {
-	ID         snowflake.ID `json:"id"`
-	Name       string       `json:"name"`
-	NasenCount int          `json:"nasen_count"`
-	Exp        int          `json:"exp"`
-	Level      int          `json:"level"`
-	RiotPUUID  string       `json:"riot_puuid"`
+	ID         snowflake.ID   `json:"id"`
+	Name       string         `json:"name"`
+	NasenCount int            `json:"nasen_count"`
+	Exp        int            `json:"exp"`
+	Level      int            `json:"level"`
+	RiotPUUID  sql.NullString `json:"riot_puuid"`
 }
 
 func InsertDBUser(discordUserID snowflake.ID, username string) error {
