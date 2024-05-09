@@ -35,6 +35,7 @@ func (b *Bot) SetupBot() {
 		"say":         general.SayCommandHandler,
 		"clownsnase":  nasen.ClownsnaseCommandHandler,
 		"clownfiesta": nasen.ClownfiestaCommandHandler,
+		"nasen":       nasen.NasenCommandHandler,
 	}
 
 	// Initialize bot client

@@ -88,7 +88,7 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate)
 						Value: fmt.Sprintf("<@%s>", target.ID),
 					}, {
 						Name:  "Total: ",
-						Value: fmt.Sprintf("%d", nasenCount+1),
+						Value: fmt.Sprintf("%d", nasenCount),
 					},
 				},
 			},

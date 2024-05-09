@@ -19,6 +19,7 @@ var commands = []discord.ApplicationCommandCreate{
 	music.PlayCommand,
 	nasen.ClownsnaseCommand,
 	nasen.ClownfiestaCommand,
+	nasen.NasenCommand,
 }
 
 func RegisterSlashCommands(client bot.Client, guildID snowflake.ID) {

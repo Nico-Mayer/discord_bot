@@ -70,6 +70,9 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 						Value: fmt.Sprintf("```%d```", userNasenCount),
 					},
 				},
+				Footer: &discord.EmbedFooter{
+					Text: "Um eine Liste aller Clownsnasen des Benutzers zu sehen, benutze /nasen.",
+				},
 			},
 		},
 	})
