@@ -38,6 +38,7 @@ func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate
 	voiceState, ok := event.Client().Caches().VoiceState(config.GUILD_ID, event.User().ID)
 	if !ok {
 		event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
 			Content: "You need to be in a voice channel to use this command",
 		})
 		return
@@ -46,14 +47,15 @@ func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate
 	voiceChannel, ok := event.Client().Caches().GuildAudioChannel(*voiceState.ChannelID)
 	if !ok {
 		event.CreateMessage(discord.MessageCreate{
-			Content: "Voice channel is not existing",
+			Flags:   discord.MessageFlagEphemeral,
+			Content: "ERROR: voice channel is not existing",
 		})
 		return
 	}
 
 	usersInChannel := event.Client().Caches().AudioChannelMembers(voiceChannel)
-	event.DeferCreateMessage(false)
 
+	event.DeferCreateMessage(false)
 	author := event.User()
 
 	var wg sync.WaitGroup

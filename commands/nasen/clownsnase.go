@@ -36,15 +36,15 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate)
 	target := data.User("user")
 	reason := data.String("reason")
 
-	event.DeferCreateMessage(false)
-
 	if target.Bot {
-		event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+		event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
 			Content: "Du kannst mir keine clownsnase geben ich bin fucking " + fmt.Sprintf("<@%s>", target.ID),
 		})
 		return
 	}
 
+	event.DeferCreateMessage(false)
 	if !db.UserInDatabase(target.ID) {
 		err := db.InsertDBUser(target.ID, target.Username)
 		if err != nil {

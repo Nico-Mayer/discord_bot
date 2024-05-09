@@ -26,12 +26,15 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 	data := event.SlashCommandInteractionData()
 	targetUser := data.User("user")
 
-	event.DeferCreateMessage(false)
-
 	if targetUser.Bot {
+		event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
+			Content: "Du kannst keine infos von Bots abrufen.",
+		})
 		return
 	}
 
+	event.DeferCreateMessage(false)
 	if !db.UserInDatabase(targetUser.ID) {
 		err := db.InsertDBUser(targetUser.ID, targetUser.Username)
 		if err != nil {

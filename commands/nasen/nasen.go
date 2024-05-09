@@ -26,10 +26,7 @@ var NasenCommand = discord.SlashCommandCreate{
 
 func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 	data := event.SlashCommandInteractionData()
-
 	target := data.User("user")
-
-	event.DeferCreateMessage(false)
 
 	nasen, err := db.GetNasenForUser(target.ID)
 	if err != nil {
@@ -37,12 +34,14 @@ func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 	}
 
 	if len(nasen) == 0 {
-		event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+		event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
 			Content: "Diser user hat noch keine Clownsnase, du kannst ihm eine mit `/clownsnase` geben.",
 		})
 		return
 	}
 
+	event.DeferCreateMessage(false)
 	event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
 		Content: getDesc(target, nasen),
 	})
