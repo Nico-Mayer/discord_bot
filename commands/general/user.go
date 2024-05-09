@@ -5,6 +5,7 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
@@ -21,14 +22,14 @@ var UserCommand = discord.SlashCommandCreate{
 	},
 }
 
-func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
+func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
 	targetUser := data.User("user")
 
 	if targetUser.Bot {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: "Du kannst keine infos von Bots abrufen.",
+			Content: "Du kannst keine infos von Bots abrufen",
 		})
 	}
 

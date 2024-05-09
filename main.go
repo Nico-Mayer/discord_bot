@@ -7,7 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/disgoorg/disgo/events"
+	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/commands"
+	"github.com/nico-mayer/discordbot/commands/general"
+	"github.com/nico-mayer/discordbot/commands/nasen"
 	"github.com/nico-mayer/discordbot/config"
 )
 
@@ -15,7 +19,18 @@ func main() {
 	osSignals := make(chan os.Signal, 1)
 
 	// Setup bot
-	bot := NewBot()
+	bot := mybot.NewBot()
+
+	// Populate slash handler slice
+	bot.Handlers = map[string]func(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error{
+		general.HelpCommand.Name:      general.HelpCommandHandler,
+		general.UserCommand.Name:      general.UserCommandHandler,
+		nasen.ClownsnaseCommand.Name:  nasen.ClownsnaseCommandHandler,
+		nasen.ClownfiestaCommand.Name: nasen.ClownfiestaCommandHandler,
+		nasen.NasenCommand.Name:       nasen.NasenCommandHandler,
+		nasen.LeaderboardCommand.Name: nasen.LeaderboardCommandHandler,
+	}
+
 	bot.SetupBot()
 
 	// Register slash commands

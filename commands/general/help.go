@@ -5,6 +5,7 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/config"
 )
 
@@ -13,7 +14,7 @@ var HelpCommand = discord.SlashCommandCreate{
 	Description: "Zeigt liste aller Commands",
 }
 
-func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
+func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
 	event.DeferCreateMessage(true)
 
 	var slashCommands []discord.SlashCommand

@@ -6,6 +6,7 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
@@ -15,7 +16,7 @@ var LeaderboardCommand = discord.SlashCommandCreate{
 	Description: "Zeigt Clownsnasen Leaderboard an",
 }
 
-func LeaderboardCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
+func LeaderboardCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	leaderboard, err := db.GetLeaderboard()
 	if err != nil {
 		return err

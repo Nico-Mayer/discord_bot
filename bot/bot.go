@@ -1,4 +1,4 @@
-package main
+package mybot
 
 import (
 	"context"
@@ -10,14 +10,13 @@ import (
 	"github.com/disgoorg/disgo/cache"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
-	"github.com/nico-mayer/discordbot/commands/general"
-	"github.com/nico-mayer/discordbot/commands/nasen"
 	"github.com/nico-mayer/discordbot/config"
 )
 
 type Bot struct {
+	Name     string
 	Client   bot.Client
-	Handlers map[string]func(event *events.ApplicationCommandInteractionCreate) error
+	Handlers map[string]func(event *events.ApplicationCommandInteractionCreate, b *Bot) error
 }
 
 func NewBot() *Bot {
@@ -26,16 +25,7 @@ func NewBot() *Bot {
 
 func (b *Bot) SetupBot() {
 	var err error
-
-	// Populate handlers slice
-	b.Handlers = map[string]func(event *events.ApplicationCommandInteractionCreate) error{
-		general.HelpCommand.Name:      general.HelpCommandHandler,
-		general.UserCommand.Name:      general.UserCommandHandler,
-		nasen.ClownsnaseCommand.Name:  nasen.ClownsnaseCommandHandler,
-		nasen.ClownfiestaCommand.Name: nasen.ClownfiestaCommandHandler,
-		nasen.NasenCommand.Name:       nasen.NasenCommandHandler,
-		nasen.LeaderboardCommand.Name: nasen.LeaderboardCommandHandler,
-	}
+	b.Name = "justus"
 
 	// Initialize bot client
 	b.Client, err = disgo.New(config.TOKEN,
@@ -68,7 +58,7 @@ func (b *Bot) onApplicationCommand(event *events.ApplicationCommandInteractionCr
 		slog.Info("unknown command", slog.String("command", data.CommandName()))
 		return
 	}
-	err := handler(event)
+	err := handler(event, b)
 	if err != nil {
 		slog.Error("executing slash command", slog.String("command", data.CommandName()), err)
 	}

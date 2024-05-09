@@ -7,6 +7,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/jedib0t/go-pretty/table"
+	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
@@ -23,7 +24,7 @@ var NasenCommand = discord.SlashCommandCreate{
 	},
 }
 
-func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
+func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
 	target := data.User("user")
 

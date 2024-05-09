@@ -9,6 +9,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
+	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
@@ -25,7 +26,7 @@ var ClownfiestaCommand = discord.SlashCommandCreate{
 	},
 }
 
-func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
+func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
 
 	reason := data.String("reason")
