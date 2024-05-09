@@ -11,6 +11,7 @@ import (
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/commands"
 	"github.com/nico-mayer/discordbot/commands/general"
+	"github.com/nico-mayer/discordbot/commands/music"
 	"github.com/nico-mayer/discordbot/commands/nasen"
 	"github.com/nico-mayer/discordbot/config"
 )
@@ -29,6 +30,7 @@ func main() {
 		nasen.ClownfiestaCommand.Name: nasen.ClownfiestaCommandHandler,
 		nasen.NasenCommand.Name:       nasen.NasenCommandHandler,
 		nasen.LeaderboardCommand.Name: nasen.LeaderboardCommandHandler,
+		music.TestCommand.Name:        music.TestCommandHandler,
 	}
 
 	bot.SetupBot()

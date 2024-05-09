@@ -1,75 +1,71 @@
 package music
 
-/* package music
-
 import (
 	"context"
-	"encoding/binary"
-	"io"
-	"os"
-	"time"
+	"fmt"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/voice"
+	"github.com/disgoorg/disgolink/v3/disgolink"
+	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/json"
 	"github.com/disgoorg/snowflake/v2"
+	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/config"
 )
 
-var PlayCommand = discord.SlashCommandCreate{
-	Name:        "play",
-	Description: "play music",
+var TestCommand = discord.SlashCommandCreate{
+	Name:        "test",
+	Description: "test",
 }
 
-func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate) {
-	client := event.Client()
-	conn := client.VoiceManager().CreateConn(config.GUILD_ID)
+func TestCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	if err := conn.Open(ctx, snowflake.MustParse("1082979754312994880"), false, false); err != nil {
-		panic("error connecting to voice channel: " + err.Error())
-	}
-	defer func() {
-		closeCtx, closeCancel := context.WithTimeout(context.Background(), time.Second*10)
-		defer closeCancel()
-		conn.Close(closeCtx)
-	}()
+	query := "https://www.youtube.com/watch?v=HJeY-FXidDQ"
 
-	if err := conn.SetSpeaking(ctx, voice.SpeakingFlagMicrophone); err != nil {
-		panic("error setting speaking flag: " + err.Error())
+	event.DeferCreateMessage(false)
+
+	var toPlay *lavalink.Track
+	bot.Lavalink.BestNode().LoadTracksHandler(context.TODO(), query, disgolink.NewResultHandler(
+		func(track lavalink.Track) {
+			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+				Content: json.Ptr(fmt.Sprintf("Loaded track: [`%s`](<%s>)", track.Info.Title, *track.Info.URI)),
+			})
+			toPlay = &track
+		},
+		func(playlist lavalink.Playlist) {
+			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+				Content: json.Ptr(fmt.Sprintf("Loaded playlist: `%s` with `%d` tracks", playlist.Info.Name, len(playlist.Tracks))),
+			})
+			toPlay = &playlist.Tracks[0]
+		},
+		func(tracks []lavalink.Track) {
+			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+				Content: json.Ptr(fmt.Sprintf("Loaded search result: [`%s`](<%s>)", tracks[0].Info.Title, *tracks[0].Info.URI)),
+			})
+			toPlay = &tracks[0]
+		},
+		func() {
+			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+				Content: json.Ptr(fmt.Sprintf("Nothing found for: `%s`", query)),
+			})
+		},
+		func(err error) {
+			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+				Content: json.Ptr(fmt.Sprintf("Error while looking up query: `%s`", err)),
+			})
+		},
+	))
+	if toPlay == nil {
+		return nil
 	}
-	writeOpus(conn.UDP())
+
+	channelID := snowflake.MustParse("1082979754312994880")
+
+	if err := bot.Client.UpdateVoiceState(context.TODO(), config.GUILD_ID, &channelID, false, false); err != nil {
+		return err
+	}
+
+	return bot.Lavalink.Player(*event.GuildID()).Update(context.TODO(), lavalink.WithTrack(*toPlay))
+
 }
-
-func writeOpus(w io.Writer) {
-	file, err := os.Open("nico.dca")
-	if err != nil {
-		panic("error opening file: " + err.Error())
-	}
-	ticker := time.NewTicker(time.Millisecond * 20)
-	defer ticker.Stop()
-
-	var lenBuf [4]byte
-	for range ticker.C {
-		_, err = io.ReadFull(file, lenBuf[:])
-		if err != nil {
-			if err == io.EOF {
-				_ = file.Close()
-				return
-			}
-			panic("error reading file: " + err.Error())
-		}
-
-		// Read the integer
-		frameLen := int64(binary.LittleEndian.Uint32(lenBuf[:]))
-
-		// Copy the frame.
-		_, err = io.CopyN(w, file, frameLen)
-		if err != nil && err != io.EOF {
-			_ = file.Close()
-			return
-		}
-	}
-}
-*/

@@ -7,6 +7,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/nico-mayer/discordbot/commands/general"
+	"github.com/nico-mayer/discordbot/commands/music"
 	"github.com/nico-mayer/discordbot/commands/nasen"
 )
 
@@ -17,6 +18,7 @@ var commands = []discord.ApplicationCommandCreate{
 	nasen.ClownfiestaCommand,
 	nasen.NasenCommand,
 	nasen.LeaderboardCommand,
+	music.TestCommand,
 }
 
 func RegisterSlashCommands(client bot.Client, guildID snowflake.ID) {
