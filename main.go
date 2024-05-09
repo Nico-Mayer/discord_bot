@@ -30,7 +30,7 @@ func main() {
 		nasen.ClownfiestaCommand.Name: nasen.ClownfiestaCommandHandler,
 		nasen.NasenCommand.Name:       nasen.NasenCommandHandler,
 		nasen.LeaderboardCommand.Name: nasen.LeaderboardCommandHandler,
-		music.TestCommand.Name:        music.TestCommandHandler,
+		music.PlayCommand.Name:        music.PlayCommandHandler,
 	}
 
 	bot.SetupBot()

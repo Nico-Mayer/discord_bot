@@ -2,6 +2,7 @@ package music
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/disgoorg/disgo/discord"
@@ -14,14 +15,22 @@ import (
 	"github.com/nico-mayer/discordbot/config"
 )
 
-var TestCommand = discord.SlashCommandCreate{
-	Name:        "test",
-	Description: "test",
+var PlayCommand = discord.SlashCommandCreate{
+	Name:        "play",
+	Description: "Startet die Wiedergabe eines Songs",
+	Options: []discord.ApplicationCommandOption{
+		discord.ApplicationCommandOptionString{
+			Name:        "query",
+			Description: "search query",
+			Required:    true,
+		},
+	},
 }
 
-func TestCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
-
-	query := "https://www.youtube.com/watch?v=HJeY-FXidDQ"
+func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
+	data := event.SlashCommandInteractionData()
+	query := data.String("query")
+	author := event.User()
 
 	event.DeferCreateMessage(false)
 
@@ -29,7 +38,9 @@ func TestCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 	bot.Lavalink.BestNode().LoadTracksHandler(context.TODO(), query, disgolink.NewResultHandler(
 		func(track lavalink.Track) {
 			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
-				Content: json.Ptr(fmt.Sprintf("Loaded track: [`%s`](<%s>)", track.Info.Title, *track.Info.URI)),
+				Embeds: &[]discord.Embed{
+					buildPlayingEmbed(track, author),
+				},
 			})
 			toPlay = &track
 		},
@@ -57,7 +68,7 @@ func TestCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 		},
 	))
 	if toPlay == nil {
-		return nil
+		return errors.New("error fetching song data")
 	}
 
 	channelID := snowflake.MustParse("1082979754312994880")
@@ -68,4 +79,19 @@ func TestCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 
 	return bot.Lavalink.Player(*event.GuildID()).Update(context.TODO(), lavalink.WithTrack(*toPlay))
 
+}
+
+func buildPlayingEmbed(track lavalink.Track, author discord.User) discord.Embed {
+	return discord.Embed{
+		Author: &discord.EmbedAuthor{
+			Name:    author.Username,
+			IconURL: *author.AvatarURL(),
+		},
+		Title:       "▶️ - Playing:",
+		Description: fmt.Sprintf("Loaded track: [`%s`](<%s>) [03:11] 🔊", track.Info.Title, *track.Info.URI),
+		Thumbnail:   &discord.EmbedResource{URL: *track.Info.ArtworkURL},
+		Footer: &discord.EmbedFooter{
+			Text: fmt.Sprintf("Source: %s", track.Info.SourceName),
+		},
+	}
 }
