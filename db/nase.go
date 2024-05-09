@@ -26,11 +26,7 @@ func InsertNase(nase Nase) error {
 		_, err = DB.Exec(query, nase.ID, nase.UserID, nase.AuthorID, nase.Reason, nase.Created)
 	}
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func GetNasenForUser(dbUserID snowflake.ID) ([]Nase, error) {

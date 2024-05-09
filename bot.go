@@ -7,6 +7,7 @@ import (
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/cache"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
 	"github.com/nico-mayer/discordbot/commands/general"
@@ -38,8 +39,16 @@ func (b *Bot) SetupBot() {
 
 	// Initialize bot client
 	b.Client, err = disgo.New(config.TOKEN,
-		bot.WithDefaultGateway(),
-		bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuildVoiceStates, gateway.IntentGuildMessages)),
+		bot.WithCacheConfigOpts(
+			cache.WithCaches(cache.FlagVoiceStates, cache.FlagMembers, cache.FlagChannels),
+		),
+		bot.WithGatewayConfigOpts(
+			gateway.WithIntents(
+				gateway.IntentGuilds,
+				gateway.IntentGuildMessages,
+				gateway.IntentGuildVoiceStates,
+			),
+		),
 
 		// Slash command listener
 		bot.WithEventListenerFunc(b.onApplicationCommand),
