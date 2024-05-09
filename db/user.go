@@ -7,12 +7,10 @@ import (
 )
 
 type DBUser struct {
-	ID         snowflake.ID   `json:"id"`
-	Name       string         `json:"name"`
-	NasenCount int            `json:"nasen_count"`
-	Exp        int            `json:"exp"`
-	Level      int            `json:"level"`
-	RiotPUUID  sql.NullString `json:"riot_puuid"`
+	ID        snowflake.ID   `json:"id"`
+	Name      string         `json:"name"`
+	Exp       int            `json:"exp"`
+	RiotPUUID sql.NullString `json:"riot_puuid"`
 }
 
 func InsertDBUser(discordUserID snowflake.ID, username string) error {
@@ -28,7 +26,7 @@ func InsertDBUser(discordUserID snowflake.ID, username string) error {
 func GetUser(id snowflake.ID) (DBUser, error) {
 	var user DBUser
 	query := "SELECT * FROM users WHERE id = $1"
-	err := DB.QueryRow(query, id).Scan(&user.ID, &user.Name, &user.Exp, &user.Level, &user.RiotPUUID)
+	err := DB.QueryRow(query, id).Scan(&user.ID, &user.Name, &user.Exp, &user.RiotPUUID)
 	if err != nil {
 		return user, err
 	}

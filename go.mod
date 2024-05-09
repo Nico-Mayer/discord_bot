@@ -14,13 +14,13 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
-	go.mongodb.org/mongo-driver v1.14.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
+	go.mongodb.org/mongo-driver v1.15.0 // indirect
 )
 
 require (
 	github.com/disgoorg/json v1.1.0 // indirect
-	github.com/google/uuid v1.6.0
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/joho/godotenv v1.5.1

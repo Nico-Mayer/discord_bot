@@ -63,8 +63,9 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 				},
 				Fields: []discord.EmbedField{
 					{
-						Name:  "Level",
-						Value: fmt.Sprintf("```%d```", dbUser.Level),
+						Name: "Level",
+						// Todo add level clculation
+						Value: fmt.Sprintf("```%d```", 1),
 					}, {
 						Name:  "Exp",
 						Value: fmt.Sprintf("```%d```", dbUser.Exp),

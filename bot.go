@@ -29,13 +29,14 @@ func (b *Bot) SetupBot() {
 
 	// Setup Slash Handlers
 	b.Handlers = map[string]func(event *events.ApplicationCommandInteractionCreate){
-		"ping":        general.PingCommandHandler,
-		"user":        general.UserCommandHandler,
-		"help":        general.HelpCommandHandler,
-		"say":         general.SayCommandHandler,
-		"clownsnase":  nasen.ClownsnaseCommandHandler,
-		"clownfiesta": nasen.ClownfiestaCommandHandler,
-		"nasen":       nasen.NasenCommandHandler,
+		general.PingCommand.Name:      general.PingCommandHandler,
+		general.UserCommand.Name:      general.UserCommandHandler,
+		general.HelpCommand.Name:      general.HelpCommandHandler,
+		general.SayCommand.Name:       general.SayCommandHandler,
+		nasen.ClownsnaseCommand.Name:  nasen.ClownsnaseCommandHandler,
+		nasen.ClownfiestaCommand.Name: nasen.ClownfiestaCommandHandler,
+		nasen.NasenCommand.Name:       nasen.NasenCommandHandler,
+		nasen.LeaderboardCommand.Name: nasen.LeaderboardCommandHandler,
 	}
 
 	// Initialize bot client
