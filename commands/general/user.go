@@ -2,7 +2,6 @@ package general
 
 import (
 	"fmt"
-	"log/slog"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -22,37 +21,36 @@ var UserCommand = discord.SlashCommandCreate{
 	},
 }
 
-func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) {
+func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
 	data := event.SlashCommandInteractionData()
 	targetUser := data.User("user")
 
 	if targetUser.Bot {
-		event.CreateMessage(discord.MessageCreate{
+		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
 			Content: "Du kannst keine infos von Bots abrufen.",
 		})
-		return
 	}
 
 	event.DeferCreateMessage(false)
 	if !db.UserInDatabase(targetUser.ID) {
 		err := db.InsertDBUser(targetUser.ID, targetUser.Username)
 		if err != nil {
-			slog.Error("inserting user to database", err)
+			return err
 		}
 	}
 
 	dbUser, err := db.GetUser(targetUser.ID)
 	if err != nil {
-		slog.Error("fetching user data", err)
+		return err
 	}
 
 	userNasenCount, err := db.GetNasenCountForUser(dbUser.ID)
 	if err != nil {
-		slog.Error("fetching nasen slice for user", err)
+		return err
 	}
 
-	event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+	_, err = event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Title:       targetUser.Username,
@@ -64,7 +62,7 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 				Fields: []discord.EmbedField{
 					{
 						Name: "Level",
-						// Todo add level clculation
+						// Todo add level calculation
 						Value: fmt.Sprintf("```%d```", 1),
 					}, {
 						Name:  "Exp",
@@ -80,5 +78,5 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 			},
 		},
 	})
-
+	return err
 }

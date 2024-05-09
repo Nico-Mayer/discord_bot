@@ -2,7 +2,6 @@ package general
 
 import (
 	"fmt"
-	"log/slog"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -14,14 +13,14 @@ var HelpCommand = discord.SlashCommandCreate{
 	Description: "Zeigt liste aller Commands",
 }
 
-func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate) {
+func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
 	event.DeferCreateMessage(true)
 
 	var slashCommands []discord.SlashCommand
 
 	commands, err := event.Client().Rest().GetGuildCommands(config.APP_ID, config.GUILD_ID, false)
 	if err != nil {
-		slog.Error("receiving guild commands", err)
+		return err
 	}
 
 	for _, command := range commands {
@@ -39,8 +38,10 @@ func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate) {
 		},
 	})
 	if err != nil {
-		slog.Error("error on sending response", slog.Any("err", err))
+		return err
 	}
+
+	return nil
 
 }
 

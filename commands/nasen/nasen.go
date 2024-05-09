@@ -2,7 +2,6 @@ package nasen
 
 import (
 	"fmt"
-	"log/slog"
 	"strings"
 
 	"github.com/disgoorg/disgo/discord"
@@ -24,46 +23,43 @@ var NasenCommand = discord.SlashCommandCreate{
 	},
 }
 
-func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate) {
+func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
 	data := event.SlashCommandInteractionData()
 	target := data.User("user")
 
 	nasen, err := db.GetNasenForUser(target.ID)
 	if err != nil {
-		slog.Error("fetching nasen array for user", err)
+		return err
 	}
 
 	if len(nasen) == 0 {
-		event.CreateMessage(discord.MessageCreate{
+		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
 			Content: "Diser user hat noch keine Clownsnase, du kannst ihm eine mit `/clownsnase` geben.",
 		})
-		return
+	}
+
+	description, err := formatDescription(target, nasen)
+	if err != nil {
+		return err
 	}
 
 	event.DeferCreateMessage(false)
-	event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
-		Content: getDesc(target, nasen),
+	_, err = event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+		Content: description,
 	})
-
+	return err
 }
 
-func getDesc(user discord.User, nasen []db.Nase) string {
+func formatDescription(user discord.User, nasen []db.Nase) (string, error) {
 	var sb strings.Builder
 
 	heading := fmt.Sprintf("Alle Clownsnasen von <@%s> \n", user.ID)
 	sb.WriteString(heading)
 	sb.WriteString("```\n")
-	sb.WriteString(generateTable(nasen))
-	sb.WriteString("```")
 
-	return sb.String()
-}
-
-func generateTable(nasen []db.Nase) string {
-	var tableString strings.Builder
 	t := table.NewWriter()
-	t.SetOutputMirror(&tableString)
+	t.SetOutputMirror(&sb)
 	t.AppendHeader(table.Row{"Datum", "Von", "Grund"})
 	t.SetStyle(table.StyleLight)
 	t.Style().Options.SeparateRows = true
@@ -73,7 +69,7 @@ func generateTable(nasen []db.Nase) string {
 		nase := nasen[i]
 		author, err := db.GetUser(nase.AuthorID)
 		if err != nil {
-			slog.Error("error fetching user data in table generate", err)
+			return "", err
 		}
 
 		date := fmt.Sprintf("%v", nase.Created.Format("02-Jan-06"))
@@ -81,6 +77,7 @@ func generateTable(nasen []db.Nase) string {
 	}
 
 	t.Render()
+	sb.WriteString("```")
 
-	return tableString.String()
+	return sb.String(), nil
 }

@@ -7,16 +7,12 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/nico-mayer/discordbot/commands/general"
-	"github.com/nico-mayer/discordbot/commands/music"
 	"github.com/nico-mayer/discordbot/commands/nasen"
 )
 
 var commands = []discord.ApplicationCommandCreate{
-	general.SayCommand,
-	general.PingCommand,
 	general.HelpCommand,
 	general.UserCommand,
-	music.PlayCommand,
 	nasen.ClownsnaseCommand,
 	nasen.ClownfiestaCommand,
 	nasen.NasenCommand,

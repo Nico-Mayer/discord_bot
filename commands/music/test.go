@@ -1,5 +1,7 @@
 package music
 
+/* package music
+
 import (
 	"context"
 	"encoding/binary"
@@ -70,3 +72,4 @@ func writeOpus(w io.Writer) {
 		}
 	}
 }
+*/

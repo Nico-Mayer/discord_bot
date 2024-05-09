@@ -2,7 +2,6 @@ package nasen
 
 import (
 	"fmt"
-	"log/slog"
 	"strings"
 	"sync"
 	"time"
@@ -26,7 +25,7 @@ var ClownfiestaCommand = discord.SlashCommandCreate{
 	},
 }
 
-func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate) {
+func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
 	data := event.SlashCommandInteractionData()
 
 	reason := data.String("reason")
@@ -37,20 +36,18 @@ func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate
 
 	voiceState, ok := event.Client().Caches().VoiceState(config.GUILD_ID, event.User().ID)
 	if !ok {
-		event.CreateMessage(discord.MessageCreate{
+		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
 			Content: "You need to be in a voice channel to use this command",
 		})
-		return
 	}
 
 	voiceChannel, ok := event.Client().Caches().GuildAudioChannel(*voiceState.ChannelID)
 	if !ok {
-		event.CreateMessage(discord.MessageCreate{
+		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
 			Content: "ERROR: voice channel is not existing",
 		})
-		return
 	}
 
 	usersInChannel := event.Client().Caches().AudioChannelMembers(voiceChannel)
@@ -98,11 +95,11 @@ func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate
 
 	for err := range errChan {
 		if err != nil {
-			slog.Error("inserting nase for user in clownfiesta loop", err)
+			return err
 		}
 	}
 
-	event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+	_, err := event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Title: "Clownfiesta! 🤡",
@@ -113,7 +110,7 @@ func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate
 			},
 		},
 	})
-
+	return err
 }
 
 func buildList(users []discord.Member, reason string) string {

@@ -2,7 +2,6 @@ package nasen
 
 import (
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/disgoorg/disgo/discord"
@@ -29,7 +28,7 @@ var ClownsnaseCommand = discord.SlashCommandCreate{
 	},
 }
 
-func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate) {
+func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate) error {
 	data := event.SlashCommandInteractionData()
 
 	author := event.User()
@@ -37,18 +36,17 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate)
 	reason := data.String("reason")
 
 	if target.Bot {
-		event.CreateMessage(discord.MessageCreate{
+		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
 			Content: "Du kannst mir keine clownsnase geben ich bin fucking " + fmt.Sprintf("<@%s>", target.ID),
 		})
-		return
 	}
 
 	event.DeferCreateMessage(false)
 	if !db.UserInDatabase(target.ID) {
 		err := db.InsertDBUser(target.ID, target.Username)
 		if err != nil {
-			slog.Error("inserting user into database", err)
+			return err
 		}
 	}
 
@@ -62,15 +60,15 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate)
 
 	err := db.InsertNase(nase)
 	if err != nil {
-		slog.Error("inserting nase into database", err)
+		return err
 	}
 
 	nasenCount, err := db.GetNasenCountForUser(target.ID)
 	if err != nil {
-		slog.Error("fetching nasen count for target user", err)
+		return err
 	}
 
-	event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+	_, err = event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Title:       "Clownsnase Kassiert  🤡",
@@ -94,5 +92,5 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate)
 			},
 		},
 	})
-
+	return err
 }

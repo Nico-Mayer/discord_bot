@@ -17,7 +17,7 @@ import (
 
 type Bot struct {
 	Client   bot.Client
-	Handlers map[string]func(event *events.ApplicationCommandInteractionCreate)
+	Handlers map[string]func(event *events.ApplicationCommandInteractionCreate) error
 }
 
 func NewBot() *Bot {
@@ -27,12 +27,10 @@ func NewBot() *Bot {
 func (b *Bot) SetupBot() {
 	var err error
 
-	// Setup Slash Handlers
-	b.Handlers = map[string]func(event *events.ApplicationCommandInteractionCreate){
-		general.PingCommand.Name:      general.PingCommandHandler,
-		general.UserCommand.Name:      general.UserCommandHandler,
+	// Populate handlers slice
+	b.Handlers = map[string]func(event *events.ApplicationCommandInteractionCreate) error{
 		general.HelpCommand.Name:      general.HelpCommandHandler,
-		general.SayCommand.Name:       general.SayCommandHandler,
+		general.UserCommand.Name:      general.UserCommandHandler,
 		nasen.ClownsnaseCommand.Name:  nasen.ClownsnaseCommandHandler,
 		nasen.ClownfiestaCommand.Name: nasen.ClownfiestaCommandHandler,
 		nasen.NasenCommand.Name:       nasen.NasenCommandHandler,
@@ -70,5 +68,8 @@ func (b *Bot) onApplicationCommand(event *events.ApplicationCommandInteractionCr
 		slog.Info("unknown command", slog.String("command", data.CommandName()))
 		return
 	}
-	handler(event)
+	err := handler(event)
+	if err != nil {
+		slog.Error("executing slash command", slog.String("command", data.CommandName()), err)
+	}
 }
