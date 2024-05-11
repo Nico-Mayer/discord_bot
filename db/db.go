@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/lib/pq"
@@ -11,7 +12,7 @@ import (
 var DB *sql.DB
 
 func Connect() error {
-	connStr := "user=" + config.PGUSER + " password=" + config.PGPASSWORD + " dbname=" + config.PGDATABASE + " host=" + config.PGHOST + " sslmode=disable"
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", config.PGUSER, config.PGPASSWORD, config.PGHOST, config.PGPORT, config.PGDATABASE)
 	var err error
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {

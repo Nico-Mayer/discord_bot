@@ -5,13 +5,10 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/KnutZuidema/golio"
-	"github.com/KnutZuidema/golio/api"
 	"github.com/bwmarrin/discordgo"
 
 	"github.com/nico-mayer/go_discordbot/commands"
 	"github.com/nico-mayer/go_discordbot/commands/general"
-	"github.com/nico-mayer/go_discordbot/commands/lol"
 	"github.com/nico-mayer/go_discordbot/commands/music"
 	"github.com/nico-mayer/go_discordbot/commands/nasen"
 	"github.com/nico-mayer/go_discordbot/config"
@@ -30,7 +27,6 @@ func Run() {
 
 	// Init needed Clients
 	player := player.NewPlayer(session)
-	golio := golio.NewClient(config.RIOT_API_KEY, golio.WithRegion(api.RegionEuropeWest))
 
 	session.AddHandler(func(
 		s *discordgo.Session,
@@ -61,8 +57,6 @@ func Run() {
 			music.Pause(s, i, player)
 		case "resume":
 			music.Resume(s, i, player)
-		case "live_game":
-			lol.LiveGame(s, i, golio)
 		default:
 			return
 		}
