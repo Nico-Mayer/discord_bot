@@ -4,7 +4,9 @@ RUN apk add --no-cache ffmpeg --repository=https://dl-cdn.alpinelinux.org/alpine
 
 RUN apk add --no-cache python3
 
-RUN pip install yt-dlp
+RUN apk add --no-cache py3-pip
+
+RUN pip3 install yt-dlp
 
 
 WORKDIR /app
