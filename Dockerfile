@@ -5,6 +5,9 @@ python3 \
 py3-pip \
 && pip3 install --upgrade pip
 
+# Install YouTube-DL
+RUN pip3 install --upgrade yt-dlp
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
