@@ -1,9 +1,6 @@
 FROM golang:1.21.6-alpine
 
-RUN apk add --no-cache ffmpeg --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
-python3 \
-py3-pip \
-
+RUN apk add --no-cache ffmpeg --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community 
 
 WORKDIR /app
 
