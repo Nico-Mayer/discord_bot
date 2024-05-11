@@ -4,8 +4,6 @@ RUN apk add --no-cache ffmpeg --repository=https://dl-cdn.alpinelinux.org/alpine
 python3 \
 py3-pip \
 
-# Install YouTube-DL
-RUN pip3 install --upgrade yt-dlp
 
 WORKDIR /app
 
