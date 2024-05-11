@@ -4,15 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/v3/disgolink"
 	"github.com/disgoorg/disgolink/v3/lavalink"
 	"github.com/disgoorg/json"
-	"github.com/disgoorg/snowflake/v2"
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/config"
+)
+
+var (
+	urlPattern = regexp.MustCompile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]?")
 )
 
 var PlayCommand = discord.SlashCommandCreate{
@@ -20,8 +24,8 @@ var PlayCommand = discord.SlashCommandCreate{
 	Description: "Startet die Wiedergabe eines Songs",
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionString{
-			Name:        "query",
-			Description: "search query",
+			Name:        "identifier",
+			Description: "url oder suche",
 			Required:    true,
 		},
 	},
@@ -29,15 +33,28 @@ var PlayCommand = discord.SlashCommandCreate{
 
 func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
-	query := data.String("query")
 	author := event.User()
+
+	identifier := data.String("identifier")
+	if !urlPattern.MatchString(identifier) {
+		identifier = lavalink.SearchTypeYouTube.Apply(identifier)
+	}
+
+	voiceState, ok := event.Client().Caches().VoiceState(*event.GuildID(), author.ID)
+	if !ok {
+		return event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
+			Content: "Du musst in einem Voice Channel sein um diesen command zu nutzen",
+		})
+	}
 
 	event.DeferCreateMessage(false)
 
 	var toPlay *lavalink.Track
-	bot.Lavalink.BestNode().LoadTracksHandler(context.TODO(), query, disgolink.NewResultHandler(
+
+	bot.Lavalink.BestNode().LoadTracksHandler(context.TODO(), identifier, disgolink.NewResultHandler(
 		func(track lavalink.Track) {
-			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
 				Embeds: &[]discord.Embed{
 					buildPlayingEmbed(track, author),
 				},
@@ -45,24 +62,26 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 			toPlay = &track
 		},
 		func(playlist lavalink.Playlist) {
-			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
 				Content: json.Ptr(fmt.Sprintf("Loaded playlist: `%s` with `%d` tracks", playlist.Info.Name, len(playlist.Tracks))),
 			})
 			toPlay = &playlist.Tracks[0]
 		},
 		func(tracks []lavalink.Track) {
-			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
-				Content: json.Ptr(fmt.Sprintf("Loaded search result: [`%s`](<%s>)", tracks[0].Info.Title, *tracks[0].Info.URI)),
+			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+				Embeds: &[]discord.Embed{
+					buildPlayingEmbed(tracks[0], author),
+				},
 			})
 			toPlay = &tracks[0]
 		},
 		func() {
-			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
-				Content: json.Ptr(fmt.Sprintf("Nothing found for: `%s`", query)),
+			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+				Content: json.Ptr(fmt.Sprintf("Nothing found for: `%s`", identifier)),
 			})
 		},
 		func(err error) {
-			_, _ = bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
+			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
 				Content: json.Ptr(fmt.Sprintf("Error while looking up query: `%s`", err)),
 			})
 		},
@@ -71,9 +90,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 		return errors.New("error fetching song data")
 	}
 
-	channelID := snowflake.MustParse("1082979754312994880")
-
-	if err := bot.Client.UpdateVoiceState(context.TODO(), config.GUILD_ID, &channelID, false, false); err != nil {
+	if err := bot.Client.UpdateVoiceState(context.TODO(), config.GUILD_ID, voiceState.ChannelID, false, false); err != nil {
 		return err
 	}
 

@@ -20,10 +20,13 @@ type Bot struct {
 	Client   bot.Client
 	Lavalink disgolink.Client
 	Handlers map[string]func(event *events.ApplicationCommandInteractionCreate, b *Bot) error
+	Queue    *Queue
 }
 
 func NewBot() *Bot {
-	return &Bot{}
+	return &Bot{
+		Queue: &Queue{},
+	}
 }
 
 func (b *Bot) SetupBot() {
@@ -54,7 +57,10 @@ func (b *Bot) SetupBot() {
 	defer b.Client.Close(context.TODO())
 
 	// Initialize lavalink client
-	b.Lavalink = disgolink.New(b.Client.ApplicationID())
+	b.Lavalink = disgolink.New(
+		b.Client.ApplicationID(),
+		disgolink.WithListenerFunc(b.onTrackEnd),
+	)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_, err = b.Lavalink.AddNode(ctx, disgolink.NodeConfig{

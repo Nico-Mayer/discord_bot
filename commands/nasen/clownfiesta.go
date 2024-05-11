@@ -29,9 +29,8 @@ var ClownfiestaCommand = discord.SlashCommandCreate{
 func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
 
-	reason := data.String("reason")
-
-	if reason == "" {
+	reason, ok := data.OptString("source")
+	if !ok {
 		reason = "Clownfiesta 🤡"
 	}
 
