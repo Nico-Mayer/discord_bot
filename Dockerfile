@@ -3,7 +3,6 @@ FROM golang:1.21.6-alpine
 RUN apk add --no-cache ffmpeg --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
 python3 \
 py3-pip \
-&& pip3 install --upgrade pip
 
 # Install YouTube-DL
 RUN pip3 install --upgrade yt-dlp
