@@ -2,12 +2,7 @@ FROM golang:1.21.6-alpine
 
 RUN apk add --no-cache ffmpeg --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community 
 
-RUN apk add --no-cache python3
-
-RUN apk add --no-cache py3-pip
-
-RUN pip3 install yt-dlp
-
+RUN apk add --no-cache yt-dlp --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community 
 
 WORKDIR /app
 
