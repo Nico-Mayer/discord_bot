@@ -4,7 +4,7 @@ RUN apk update
 
 RUN apk add --no-cache ffmpeg --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community 
 
-RUN apk add --no-cache yt-dlp --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community 
+RUN apk add --no-cache yt-dlp 
 
 WORKDIR /app
 
