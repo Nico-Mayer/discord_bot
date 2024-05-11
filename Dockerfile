@@ -3,7 +3,7 @@ FROM golang:1.21.6-alpine
 RUN apk add --no-cache ffmpeg --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community 
 
 
-RUN apk add --no-cache python --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
+RUN apk add --no-cache python3
 
 WORKDIR /app
 
