@@ -1,18 +1,20 @@
 package music
 
 import (
+	"bufio"
 	"context"
-	"errors"
 	"fmt"
+	"log/slog"
+	"os"
+	"os/exec"
 	"regexp"
+	"strings"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgolink/v3/disgolink"
-	"github.com/disgoorg/disgolink/v3/lavalink"
-	"github.com/disgoorg/json"
+	"github.com/disgoorg/disgo/voice"
+	"github.com/disgoorg/ffmpeg-audio"
 	mybot "github.com/nico-mayer/discordbot/bot"
-	"github.com/nico-mayer/discordbot/config"
 )
 
 var (
@@ -24,7 +26,7 @@ var PlayCommand = discord.SlashCommandCreate{
 	Description: "Startet die Wiedergabe eines Songs",
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionString{
-			Name:        "identifier",
+			Name:        "query",
 			Description: "url oder suche",
 			Required:    true,
 		},
@@ -34,10 +36,10 @@ var PlayCommand = discord.SlashCommandCreate{
 func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
 	author := event.User()
+	query := data.String("query")
 
-	identifier := data.String("identifier")
-	if !urlPattern.MatchString(identifier) {
-		identifier = lavalink.SearchTypeYouTube.Apply(identifier)
+	if !urlPattern.MatchString(query) {
+		query = "ytsearch:" + strings.TrimSpace(query)
 	}
 
 	voiceState, ok := event.Client().Caches().VoiceState(*event.GuildID(), author.ID)
@@ -48,67 +50,59 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 		})
 	}
 
-	event.DeferCreateMessage(false)
+	cmd := exec.Command(
+		"yt-dlp", query,
+		"--extract-audio",
+		"--audio-format", "opus",
+		"--no-playlist",
+		"-o", "-",
+		"--quiet",
+		"--ignore-errors",
+		"--no-warnings",
+	)
+	cmd.Stderr = os.Stderr
 
-	var toPlay *lavalink.Track
-
-	bot.Lavalink.BestNode().LoadTracksHandler(context.TODO(), identifier, disgolink.NewResultHandler(
-		func(track lavalink.Track) {
-			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
-				Embeds: &[]discord.Embed{
-					buildPlayingEmbed(track, author),
-				},
-			})
-			toPlay = &track
-		},
-		func(playlist lavalink.Playlist) {
-			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
-				Content: json.Ptr(fmt.Sprintf("Loaded playlist: `%s` with `%d` tracks", playlist.Info.Name, len(playlist.Tracks))),
-			})
-			toPlay = &playlist.Tracks[0]
-		},
-		func(tracks []lavalink.Track) {
-			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
-				Embeds: &[]discord.Embed{
-					buildPlayingEmbed(tracks[0], author),
-				},
-			})
-			toPlay = &tracks[0]
-		},
-		func() {
-			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
-				Content: json.Ptr(fmt.Sprintf("Nothing found for: `%s`", identifier)),
-			})
-		},
-		func(err error) {
-			bot.Client.Rest().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.MessageUpdate{
-				Content: json.Ptr(fmt.Sprintf("Error while looking up query: `%s`", err)),
-			})
-		},
-	))
-	if toPlay == nil {
-		return errors.New("error fetching song data")
-	}
-
-	if err := bot.Client.UpdateVoiceState(context.TODO(), config.GUILD_ID, voiceState.ChannelID, false, false); err != nil {
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		slog.Error("creating stdout pipe", err)
 		return err
 	}
 
-	return bot.Lavalink.Player(*event.GuildID()).Update(context.TODO(), lavalink.WithTrack(*toPlay))
-
-}
-
-func buildPlayingEmbed(track lavalink.Track, author discord.User) discord.Embed {
-	return discord.Embed{
-		Author: &discord.EmbedAuthor{
-			Name:    author.Username,
-			IconURL: *author.AvatarURL(),
-		},
-		Title:       "▶️ - Playing:",
-		Description: fmt.Sprintf("Loaded track: [`%s`](<%s>) [03:11] 🔊", track.Info.Title, *track.Info.URI),
-		Thumbnail:   &discord.EmbedResource{URL: *track.Info.ArtworkURL},
-		Footer: &discord.EmbedFooter{
-			Text: fmt.Sprintf("Source: %s", track.Info.SourceName),
-		},
+	if err = event.DeferCreateMessage(false); err != nil {
+		slog.Error("creating defer message", err)
+		return err
 	}
+
+	go func() {
+		conn := event.Client().VoiceManager().CreateConn(*event.GuildID())
+		if err = conn.Open(context.TODO(), *voiceState.ChannelID, false, false); err != nil {
+			slog.Error("connecting to voice", err)
+		}
+		defer conn.Close(context.TODO())
+
+		if err = conn.SetSpeaking(context.TODO(), voice.SpeakingFlagMicrophone); err != nil {
+			slog.Error("set speaking", err)
+		}
+
+		if err = cmd.Start(); err != nil {
+			slog.Error("starting yt-dlp", err)
+		}
+
+		opusProvider, err := ffmpeg.New(context.TODO(), bufio.NewReader(stdout))
+		if err != nil {
+			slog.Error("ffmpeg start", err)
+		}
+		defer opusProvider.Close()
+
+		conn.SetOpusFrameProvider(opusProvider)
+
+		event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+			Content: fmt.Sprintf("Loaded song: [%s]", query),
+		})
+		if err = cmd.Wait(); err != nil {
+			slog.Error("error waiting for yt-dlp: ", err)
+		}
+	}()
+
+	return nil
 }
