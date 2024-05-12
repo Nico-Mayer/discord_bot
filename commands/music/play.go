@@ -3,12 +3,14 @@ package music
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -18,7 +20,7 @@ import (
 )
 
 var (
-	urlPattern = regexp.MustCompile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]?")
+	urlPattern = regexp.MustCompile(`^https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[a-zA-Z0-9_-]{11}`)
 )
 
 var PlayCommand = discord.SlashCommandCreate{
@@ -27,7 +29,7 @@ var PlayCommand = discord.SlashCommandCreate{
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionString{
 			Name:        "query",
-			Description: "url oder suche",
+			Description: "youtube url oder suche",
 			Required:    true,
 		},
 	},
@@ -38,16 +40,21 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 	author := event.User()
 	query := data.String("query")
 
+	if bot.BotStatus == mybot.Playing {
+		return handleError(event, "I am already playing a song", errors.New("already playing a song"))
+	}
+
 	if !urlPattern.MatchString(query) {
 		query = "ytsearch:" + strings.TrimSpace(query)
 	}
 
 	voiceState, ok := event.Client().Caches().VoiceState(*event.GuildID(), author.ID)
 	if !ok {
-		return event.CreateMessage(discord.MessageCreate{
-			Flags:   discord.MessageFlagEphemeral,
-			Content: "Du musst in einem Voice Channel sein um diesen command zu nutzen",
-		})
+		return handleError(event, "Du musst in einem Voice Channel sein um diesen command zu nutzen", errors.New("author of play command not in a voice channel"))
+	}
+
+	if err := event.DeferCreateMessage(false); err != nil {
+		return handleError(event, "Error creating defer message", err)
 	}
 
 	cmd := exec.Command(
@@ -64,35 +71,33 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		slog.Error("creating stdout pipe", err)
-		return err
-	}
-
-	if err = event.DeferCreateMessage(false); err != nil {
-		slog.Error("creating defer message", err)
-		return err
+		return handleError(event, "Error creating stdout pipe for song", err)
 	}
 
 	go func() {
 		conn := event.Client().VoiceManager().CreateConn(*event.GuildID())
 		if err = conn.Open(context.TODO(), *voiceState.ChannelID, false, false); err != nil {
-			slog.Error("connecting to voice", err)
+			handleDeferError(event, "Error connecting to voice channel", err)
+			return
 		}
-		defer conn.Close(context.TODO())
 
 		if err = conn.SetSpeaking(context.TODO(), voice.SpeakingFlagMicrophone); err != nil {
-			slog.Error("set speaking", err)
+			handleDeferError(event, "Error set bot to speaking", err)
+			return
 		}
 
+		bot.BotStatus = mybot.Playing
+
 		if err = cmd.Start(); err != nil {
-			slog.Error("starting yt-dlp", err)
+			handleDeferError(event, "Error starting yt-dlp", err)
+			return
 		}
 
 		opusProvider, err := ffmpeg.New(context.TODO(), bufio.NewReader(stdout))
 		if err != nil {
-			slog.Error("ffmpeg start", err)
+			handleDeferError(event, "Error starting ffmpeg", err)
+			return
 		}
-		defer opusProvider.Close()
 
 		conn.SetOpusFrameProvider(opusProvider)
 
@@ -100,9 +105,32 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 			Content: fmt.Sprintf("Loaded song: [%s]", query),
 		})
 		if err = cmd.Wait(); err != nil {
-			slog.Error("error waiting for yt-dlp: ", err)
+			handleDeferError(event, "ERROR waiting for yt-dlp", err)
 		}
-	}()
 
+		time.Sleep(5 * time.Second)
+
+		defer func() {
+			bot.BotStatus = mybot.Resting
+			opusProvider.Close()
+			conn.Close(context.TODO())
+		}()
+	}()
 	return nil
+}
+
+func handleError(event *events.ApplicationCommandInteractionCreate, message string, err error) error {
+	slog.Error(message, err)
+	return event.CreateMessage(discord.MessageCreate{
+		Flags:   discord.MessageFlagEphemeral,
+		Content: message,
+	})
+}
+
+func handleDeferError(event *events.ApplicationCommandInteractionCreate, message string, err error) error {
+	slog.Error(message, err)
+	_, error := event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+		Content: message,
+	})
+	return error
 }

@@ -13,13 +13,23 @@ import (
 	"github.com/nico-mayer/discordbot/config"
 )
 
+type BotStatus int32
+
+const (
+	Resting BotStatus = 0
+	Playing BotStatus = 1
+)
+
 type Bot struct {
-	Client   bot.Client
-	Handlers map[string]func(event *events.ApplicationCommandInteractionCreate, b *Bot) error
+	Client    bot.Client
+	BotStatus BotStatus
+	Handlers  map[string]func(event *events.ApplicationCommandInteractionCreate, b *Bot) error
 }
 
 func NewBot() *Bot {
-	return &Bot{}
+	return &Bot{
+		BotStatus: Resting,
+	}
 }
 
 func (b *Bot) SetupBot() {
