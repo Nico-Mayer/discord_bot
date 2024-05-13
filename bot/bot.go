@@ -24,6 +24,7 @@ type Bot struct {
 	Client    bot.Client
 	BotStatus BotStatus
 	Handlers  map[string]func(event *events.ApplicationCommandInteractionCreate, b *Bot) error
+	Queue     []Song
 }
 
 func NewBot() *Bot {

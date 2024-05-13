@@ -1,22 +1,17 @@
 package music
 
 import (
-	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"os/exec"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/voice"
-	"github.com/disgoorg/ffmpeg-audio"
 	mybot "github.com/nico-mayer/discordbot/bot"
+	"github.com/nico-mayer/discordbot/config"
 )
 
 var (
@@ -37,100 +32,82 @@ var PlayCommand = discord.SlashCommandCreate{
 
 func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
-	author := event.User()
 	query := data.String("query")
-
-	if bot.BotStatus == mybot.Playing {
-		return handleError(event, "I am already playing a song", errors.New("already playing a song"))
-	}
-
 	if !urlPattern.MatchString(query) {
 		query = "ytsearch:" + strings.TrimSpace(query)
 	}
-
-	voiceState, ok := event.Client().Caches().VoiceState(*event.GuildID(), author.ID)
+	voiceState, ok := event.Client().Caches().VoiceState(*event.GuildID(), event.User().ID)
 	if !ok {
-		return handleError(event, "Du musst in einem Voice Channel sein um diesen command zu nutzen", errors.New("author of play command not in a voice channel"))
+		return event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
+			Content: "Du musst in einem voice channel sein um diesen command zu benutzen.",
+		})
 	}
 
 	if err := event.DeferCreateMessage(false); err != nil {
-		return handleError(event, "Error creating defer message", err)
+		return err
 	}
 
-	cmd := exec.Command(
-		"yt-dlp", query,
-		"--extract-audio",
-		"--audio-format", "opus",
-		"--no-playlist",
-		"-o", "-",
-		"--quiet",
-		"--ignore-errors",
-		"--no-warnings",
-	)
-	cmd.Stderr = os.Stderr
-
-	stdout, err := cmd.StdoutPipe()
+	song, err := bot.Enqueue(query)
 	if err != nil {
-		return handleError(event, "Error creating stdout pipe for song", err)
+		event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+			Content: "Fehler beim laden der songdaten",
+		})
+		return err
 	}
 
-	go func() {
-		conn := event.Client().VoiceManager().CreateConn(*event.GuildID())
-		if err = conn.Open(context.TODO(), *voiceState.ChannelID, false, false); err != nil {
-			handleDeferError(event, "Error connecting to voice channel", err)
-			return
-		}
-
-		if err = conn.SetSpeaking(context.TODO(), voice.SpeakingFlagMicrophone); err != nil {
-			handleDeferError(event, "Error set bot to speaking", err)
-			return
-		}
-
-		bot.BotStatus = mybot.Playing
-
-		if err = cmd.Start(); err != nil {
-			handleDeferError(event, "Error starting yt-dlp", err)
-			return
-		}
-
-		opusProvider, err := ffmpeg.New(context.TODO(), bufio.NewReader(stdout))
-		if err != nil {
-			handleDeferError(event, "Error starting ffmpeg", err)
-			return
-		}
-
-		conn.SetOpusFrameProvider(opusProvider)
-
-		event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
-			Content: fmt.Sprintf("Loaded song: [%s]", query),
+	// ADD TO QUEUE CASE
+	if bot.BotStatus == mybot.Playing {
+		_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+			Embeds: []discord.Embed{
+				{
+					Author: &discord.EmbedAuthor{
+						Name:    event.User().Username,
+						IconURL: *event.User().AvatarURL(),
+					},
+					Title:       "📃 Warteschlange",
+					Description: fmt.Sprintf("Added song: [`%s`]", song.Title),
+					Thumbnail: &discord.EmbedResource{
+						URL: song.ThumbnailURL,
+					},
+				},
+			},
 		})
-		if err = cmd.Wait(); err != nil {
-			handleDeferError(event, "ERROR waiting for yt-dlp", err)
+		return err
+	}
+
+	// Play SONG CASE
+	// CONNECT TO VOICE, IS A BLOCKING CALL SO RUN IN GO ROUTINE
+	go func() {
+		conn := bot.Client.VoiceManager().CreateConn(config.GUILD_ID)
+		if err = conn.Open(context.TODO(), *voiceState.ChannelID, false, false); err != nil {
+			slog.Error("connecting to voice channel", err)
 		}
-
-		time.Sleep(5 * time.Second)
-
-		defer func() {
-			bot.BotStatus = mybot.Resting
-			opusProvider.Close()
-			conn.Close(context.TODO())
-		}()
+		if err = conn.SetSpeaking(context.TODO(), voice.SpeakingFlagMicrophone); err != nil {
+			slog.Error("setting bot to speaking", err)
+		}
 	}()
+
+	go bot.PlaySong()
+	event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+		Embeds: []discord.Embed{
+			{
+				Author: &discord.EmbedAuthor{
+					Name:    event.User().Username,
+					IconURL: *event.User().AvatarURL(),
+				},
+				URL:         "https://www.youtube.com/watch?v=" + song.ID,
+				Title:       song.Title,
+				Description: fmt.Sprintf("▶️ Playing [`%s`]", song.Duration),
+				Thumbnail: &discord.EmbedResource{
+					URL: song.ThumbnailURL,
+				},
+				Footer: &discord.EmbedFooter{
+					Text: "source: youtube",
+				},
+			},
+		},
+	})
+
 	return nil
-}
-
-func handleError(event *events.ApplicationCommandInteractionCreate, message string, err error) error {
-	slog.Error(message, err)
-	return event.CreateMessage(discord.MessageCreate{
-		Flags:   discord.MessageFlagEphemeral,
-		Content: message,
-	})
-}
-
-func handleDeferError(event *events.ApplicationCommandInteractionCreate, message string, err error) error {
-	slog.Error(message, err)
-	_, error := event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
-		Content: message,
-	})
-	return error
 }
