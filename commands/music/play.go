@@ -91,7 +91,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 		}
 	}()
 
-	go b.PlayQueue()
+	go b.PlayQueue(*event.GuildID())
 	event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{

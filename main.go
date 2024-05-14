@@ -9,12 +9,12 @@ import (
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/snowflake/v2"
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/commands"
 	"github.com/nico-mayer/discordbot/commands/general"
 	"github.com/nico-mayer/discordbot/commands/music"
 	"github.com/nico-mayer/discordbot/commands/nasen"
-	"github.com/nico-mayer/discordbot/config"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 	bot.SetupBot()
 
 	// Register slash commands
-	commands.RegisterSlashCommands(bot.Client, config.GUILD_ID)
+	commands.RegisterSlashCommands(bot.Client, snowflake.GetEnv("GUILD_ID"))
 
 	// Open Gateway
 	if err := bot.Client.OpenGateway(context.TODO()); err != nil {

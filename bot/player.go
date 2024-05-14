@@ -13,7 +13,7 @@ import (
 	"os/exec"
 
 	"github.com/disgoorg/ffmpeg-audio"
-	"github.com/nico-mayer/discordbot/config"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 type Song struct {
@@ -46,7 +46,7 @@ func (b *Bot) ClearQueue() {
 	b.Queue = []Song{}
 }
 
-func (b *Bot) PlayQueue() error {
+func (b *Bot) PlayQueue(guildID snowflake.ID) error {
 	cmd := exec.Command(
 		"yt-dlp", b.Queue[0].Query,
 		"--extract-audio",
@@ -78,14 +78,14 @@ func (b *Bot) PlayQueue() error {
 		return err
 	}
 
-	conn := b.Client.VoiceManager().GetConn(config.GUILD_ID)
+	conn := b.Client.VoiceManager().GetConn(guildID)
 	conn.SetOpusFrameProvider(opusProvider)
 
 	defer func() {
 		opusProvider.Close()
 		b.Dequeue()
 		if len(b.Queue) > 0 {
-			go b.PlayQueue()
+			go b.PlayQueue(guildID)
 		} else {
 			conn.Close(context.TODO())
 			b.BotStatus = Resting

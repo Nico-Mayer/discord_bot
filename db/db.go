@@ -5,15 +5,21 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/nico-mayer/discordbot/config"
 )
 
 var DB *sql.DB
 
 func init() {
-	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", config.PGUSER, config.PGPASSWORD, config.PGHOST, config.PGPORT, config.PGDATABASE)
+	if os.Getenv("ENV") != "PROD" {
+		slog.Info("running on stage enviroment, loading env variables from .env file")
+		godotenv.Load()
+	}
+
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", os.Getenv("PGUSER"), os.Getenv("PGPASSWORD"), os.Getenv("PGHOST"), os.Getenv("PGPORT"), os.Getenv("PGDATABASE"))
 	var err error
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {

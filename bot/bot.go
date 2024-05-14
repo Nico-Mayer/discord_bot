@@ -4,13 +4,13 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"os"
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/cache"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
-	"github.com/nico-mayer/discordbot/config"
 )
 
 type BotStatus int32
@@ -39,7 +39,8 @@ func (b *Bot) SetupBot() {
 	var err error
 
 	// Initialize bot client
-	b.Client, err = disgo.New(config.TOKEN,
+	b.Client, err = disgo.New(
+		os.Getenv("TOKEN"),
 		bot.WithCacheConfigOpts(
 			cache.WithCaches(cache.FlagVoiceStates, cache.FlagMembers, cache.FlagChannels),
 		),
