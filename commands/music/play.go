@@ -65,10 +65,14 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 						Name:    event.User().Username,
 						IconURL: *event.User().AvatarURL(),
 					},
-					Title:       "📃 Warteschlange",
-					Description: fmt.Sprintf("Added song: [`%s`]", song.Title),
+					Title:       "📃 - Warteschlange",
+					Description: fmt.Sprintf("Added Song: [`%s`](%s)", song.Title, fmt.Sprintf("https://www.youtube.com/watch?v=%s", song.ID)),
 					Thumbnail: &discord.EmbedResource{
 						URL: song.ThumbnailURL,
+					},
+					Footer: &discord.EmbedFooter{
+						Text:    "source: youtube",
+						IconURL: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png",
 					},
 				},
 			},
@@ -88,7 +92,9 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 		}
 	}()
 
-	go bot.PlaySong()
+	var inline bool = true
+
+	go bot.PlayQueue()
 	event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
@@ -96,14 +102,22 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 					Name:    event.User().Username,
 					IconURL: *event.User().AvatarURL(),
 				},
-				URL:         "https://www.youtube.com/watch?v=" + song.ID,
-				Title:       song.Title,
-				Description: fmt.Sprintf("▶️ Playing [`%s`]", song.Duration),
-				Thumbnail: &discord.EmbedResource{
+				Color:       0xff0000,
+				Title:       "🔊 - Playing",
+				Description: fmt.Sprintf("Loaded Song: [`%s`](%s)", song.Title, fmt.Sprintf("https://www.youtube.com/watch?v=%s", song.ID)),
+				Fields: []discord.EmbedField{
+					{
+						Name:   "Duration",
+						Value:  song.Duration + " min",
+						Inline: &inline,
+					},
+				},
+				Image: &discord.EmbedResource{
 					URL: song.ThumbnailURL,
 				},
 				Footer: &discord.EmbedFooter{
-					Text: "source: youtube",
+					Text:    "source: youtube",
+					IconURL: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png",
 				},
 			},
 		},

@@ -3,12 +3,12 @@ package mybot
 import (
 	"bufio"
 	"context"
+	"errors"
 	"log/slog"
 	"os"
-	"time"
+	"strings"
 
 	"os/exec"
-	"strings"
 
 	"github.com/disgoorg/ffmpeg-audio"
 	"github.com/nico-mayer/discordbot/config"
@@ -39,35 +39,7 @@ func (b *Bot) Dequeue() Song {
 	return song
 }
 
-func getSongData(query string) (Song, error) {
-	cmd := exec.Command("yt-dlp",
-		"--get-title",
-		"--get-id",
-		"--get-thumbnail",
-		"--get-duration",
-		"--ignore-errors",
-		"--no-warnings",
-		"--skip-download",
-		query,
-	)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		slog.Error("loading songdata with yt-dlp command", err)
-		return Song{}, err
-	}
-
-	metadata := strings.Split(string(output), "\n")
-
-	var song Song
-	song.Title = metadata[0]
-	song.ID = metadata[1]
-	song.ThumbnailURL = metadata[2]
-	song.Duration = metadata[3]
-	song.Query = query
-	return song, nil
-}
-
-func (b *Bot) PlaySong() error {
+func (b *Bot) PlayQueue() error {
 	cmd := exec.Command(
 		"yt-dlp", b.Queue[0].Query,
 		"--extract-audio",
@@ -79,7 +51,6 @@ func (b *Bot) PlaySong() error {
 		"--no-warnings",
 	)
 	cmd.Stderr = os.Stderr
-	b.Dequeue()
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -108,13 +79,11 @@ func (b *Bot) PlaySong() error {
 		return err
 	}
 
-	// 10 SEC TIMEOUT TO ENSURE SONG NOT GETS CUT AT THE END
-	time.Sleep(time.Second * 10)
-
 	defer func() {
 		opusProvider.Close()
+		b.Dequeue()
 		if len(b.Queue) > 0 {
-			go b.PlaySong()
+			go b.PlayQueue()
 		} else {
 			conn.Close(context.TODO())
 			b.BotStatus = Resting
@@ -122,4 +91,35 @@ func (b *Bot) PlaySong() error {
 	}()
 
 	return nil
+}
+
+func getSongData(query string) (Song, error) {
+	cmd := exec.Command("yt-dlp",
+		"--get-title",
+		"--get-id",
+		"--get-thumbnail",
+		"--get-duration",
+		"--ignore-errors",
+		"--no-warnings",
+		"--skip-download",
+		query,
+	)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		slog.Error("loading songdata with yt-dlp command", err)
+		return Song{}, err
+	}
+
+	metadata := strings.Split(string(output), "\n")
+	if len(metadata) < 4 {
+		return Song{}, errors.New("loading song metadata")
+	}
+
+	var song Song
+	song.Title = metadata[0]
+	song.ID = metadata[1]
+	song.ThumbnailURL = metadata[2]
+	song.Duration = metadata[3]
+	song.Query = query
+	return song, nil
 }
