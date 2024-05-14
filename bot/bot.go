@@ -21,15 +21,17 @@ const (
 )
 
 type Bot struct {
-	Client    bot.Client
-	BotStatus BotStatus
-	Handlers  map[string]func(event *events.ApplicationCommandInteractionCreate, b *Bot) error
-	Queue     []Song
+	Client        bot.Client
+	BotStatus     BotStatus
+	Handlers      map[string]func(event *events.ApplicationCommandInteractionCreate, b *Bot) error
+	Queue         []Song
+	SkipInterrupt chan bool
 }
 
 func NewBot() *Bot {
 	return &Bot{
-		BotStatus: Resting,
+		BotStatus:     Resting,
+		SkipInterrupt: make(chan bool, 1),
 	}
 }
 

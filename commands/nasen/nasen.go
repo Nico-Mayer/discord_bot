@@ -14,7 +14,7 @@ import (
 
 var NasenCommand = discord.SlashCommandCreate{
 	Name:        "nasen",
-	Description: "Liste aller Nasen eines Users an",
+	Description: "Zeige eine Liste aller Nasen des Users.",
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionUser{
 			Name:        "user",
@@ -36,7 +36,7 @@ func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate, b *m
 	if len(nasen) == 0 {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: "Diser user hat noch keine Clownsnase, du kannst ihm eine mit `/clownsnase` geben.",
+			Content: fmt.Sprintf("<@%s> hat noch keine Clownsnase, du kannst ihm eine mit `/clownsnase` geben.", target.ID),
 		})
 	}
 

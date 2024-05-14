@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"strings"
+	"time"
 
 	"os/exec"
 
@@ -16,6 +18,7 @@ import (
 
 type Song struct {
 	Title        string
+	URL          string
 	ID           string
 	ThumbnailURL string
 	Duration     string
@@ -37,6 +40,10 @@ func (b *Bot) Dequeue() Song {
 	song := b.Queue[0]
 	b.Queue = b.Queue[1:]
 	return song
+}
+
+func (b *Bot) ClearQueue() {
+	b.Queue = []Song{}
 }
 
 func (b *Bot) PlayQueue() error {
@@ -74,11 +81,6 @@ func (b *Bot) PlayQueue() error {
 	conn := b.Client.VoiceManager().GetConn(config.GUILD_ID)
 	conn.SetOpusFrameProvider(opusProvider)
 
-	if err = cmd.Wait(); err != nil {
-		slog.Error("waiting for yt-dlp command", err)
-		return err
-	}
-
 	defer func() {
 		opusProvider.Close()
 		b.Dequeue()
@@ -90,7 +92,23 @@ func (b *Bot) PlayQueue() error {
 		}
 	}()
 
-	return nil
+	done := make(chan bool, 1)
+
+	go func(doneChan chan bool) {
+		if err = cmd.Wait(); err != nil {
+			slog.Error("waiting for yt-dlp command", err)
+		}
+		time.Sleep(7 * time.Second)
+		doneChan <- true
+	}(done)
+
+	select {
+	case <-done:
+		return nil
+
+	case <-b.SkipInterrupt:
+		return nil
+	}
 }
 
 func getSongData(query string) (Song, error) {
@@ -121,5 +139,6 @@ func getSongData(query string) (Song, error) {
 	song.ThumbnailURL = metadata[2]
 	song.Duration = metadata[3]
 	song.Query = query
+	song.URL = fmt.Sprintf("https://www.youtube.com/watch?v=%s", song.ID)
 	return song, nil
 }

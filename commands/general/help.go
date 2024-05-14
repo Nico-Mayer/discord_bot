@@ -14,7 +14,7 @@ var HelpCommand = discord.SlashCommandCreate{
 	Description: "Zeigt liste aller Commands",
 }
 
-func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
+func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	event.DeferCreateMessage(true)
 
 	var slashCommands []discord.SlashCommand

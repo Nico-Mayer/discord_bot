@@ -31,6 +31,8 @@ func main() {
 		nasen.NasenCommand.Name:       nasen.NasenCommandHandler,
 		nasen.LeaderboardCommand.Name: nasen.LeaderboardCommandHandler,
 		music.PlayCommand.Name:        music.PlayCommandHandler,
+		music.StopCommand.Name:        music.StopCommandHandler,
+		music.SkipCommand.Name:        music.SkipCommandHandler,
 	}
 
 	bot.SetupBot()

@@ -30,7 +30,7 @@ var PlayCommand = discord.SlashCommandCreate{
 	},
 }
 
-func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *mybot.Bot) error {
+func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
 	query := data.String("query")
 	if !urlPattern.MatchString(query) {
@@ -48,7 +48,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 		return err
 	}
 
-	song, err := bot.Enqueue(query)
+	song, err := b.Enqueue(query)
 	if err != nil {
 		event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 			Content: "Fehler beim laden der songdaten",
@@ -57,7 +57,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 	}
 
 	// ADD TO QUEUE CASE
-	if bot.BotStatus == mybot.Playing {
+	if b.BotStatus == mybot.Playing {
 		_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 			Embeds: []discord.Embed{
 				{
@@ -66,7 +66,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 						IconURL: *event.User().AvatarURL(),
 					},
 					Title:       "📃 - Warteschlange",
-					Description: fmt.Sprintf("Added Song: [`%s`](%s)", song.Title, fmt.Sprintf("https://www.youtube.com/watch?v=%s", song.ID)),
+					Description: fmt.Sprintf("Added Song: [`%s`](%s)", song.Title, song.URL),
 					Thumbnail: &discord.EmbedResource{
 						URL: song.ThumbnailURL,
 					},
@@ -83,7 +83,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 	// Play SONG CASE
 	// CONNECT TO VOICE, IS A BLOCKING CALL SO RUN IN GO ROUTINE
 	go func() {
-		conn := bot.Client.VoiceManager().CreateConn(config.GUILD_ID)
+		conn := b.Client.VoiceManager().CreateConn(config.GUILD_ID)
 		if err = conn.Open(context.TODO(), *voiceState.ChannelID, false, false); err != nil {
 			slog.Error("connecting to voice channel", err)
 		}
@@ -92,9 +92,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 		}
 	}()
 
-	var inline bool = true
-
-	go bot.PlayQueue()
+	go b.PlayQueue()
 	event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
@@ -104,12 +102,11 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, bot *
 				},
 				Color:       0xff0000,
 				Title:       "🔊 - Playing",
-				Description: fmt.Sprintf("Loaded Song: [`%s`](%s)", song.Title, fmt.Sprintf("https://www.youtube.com/watch?v=%s", song.ID)),
+				Description: fmt.Sprintf("Loaded Song: [`%s`](%s)", song.Title, song.URL),
 				Fields: []discord.EmbedField{
 					{
-						Name:   "Duration",
-						Value:  song.Duration + " min",
-						Inline: &inline,
+						Name:  "Duration",
+						Value: song.Duration + " min",
 					},
 				},
 				Image: &discord.EmbedResource{
