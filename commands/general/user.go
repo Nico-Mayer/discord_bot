@@ -6,17 +6,16 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	mybot "github.com/nico-mayer/discordbot/bot"
-	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
 
 var UserCommand = discord.SlashCommandCreate{
 	Name:        "user",
-	Description: "Zeigt Informationen über einen User an",
+	Description: "Zeige Informationen über einen User.",
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionUser{
 			Name:        "user",
-			Description: "Wähle einen User aus",
+			Description: "Wähle einen User aus.",
 			Required:    true,
 		},
 	},
@@ -29,11 +28,14 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 	if targetUser.Bot {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: "Du kannst keine infos von Bots abrufen",
+			Content: "Bot-Informationen sind nicht abrufbar.",
 		})
 	}
 
-	event.DeferCreateMessage(false)
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
+
 	if !db.UserInDatabase(targetUser.ID) {
 		err := db.InsertDBUser(targetUser.ID, targetUser.Username)
 		if err != nil {
@@ -51,7 +53,7 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 		return err
 	}
 
-	_, err = event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Title:       targetUser.Username,
@@ -74,7 +76,7 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 					},
 				},
 				Footer: &discord.EmbedFooter{
-					Text: "Um eine Liste aller Clownsnasen des Benutzers zu sehen, benutze /nasen.",
+					Text: "Für eine Liste aller Clownsnasen des Users, verwende `/nasen`.",
 				},
 			},
 		},

@@ -10,21 +10,21 @@ import (
 
 var SkipCommand = discord.SlashCommandCreate{
 	Name:        "skip",
-	Description: "Überspringt den aktuellen Song und geht zum nächsten in der Warteschlange.",
+	Description: "Überspringe den aktuellen Song und gehe zum nächsten in der Warteschlange",
 }
 
 func SkipCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	if b.BotStatus == mybot.Resting {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: "Ich spiele grade keine musik du kek, versuch nicht mich zu stoppen!",
+			Content: "Ich spiele grade keine musik du kek!",
 		})
 	}
 
 	if len(b.Queue) <= 1 {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: "Kein song mehr in der Warteschlange.",
+			Content: "Es sind keine Songs mehr in der Warteschlange.",
 		})
 	}
 

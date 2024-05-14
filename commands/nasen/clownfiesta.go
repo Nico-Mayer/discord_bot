@@ -10,17 +10,16 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 	mybot "github.com/nico-mayer/discordbot/bot"
-	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
 
 var ClownfiestaCommand = discord.SlashCommandCreate{
 	Name:        "clownfiesta",
-	Description: "Gib allen bres im Voice Channel eine Clownsnase",
+	Description: "Verteile Clownsnasen an alle User im Voice-Channel.",
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionString{
-			Name:        "reason",
-			Description: "Grund für die clownfiesta",
+			Name:        "grund",
+			Description: "Grund für die Clownfiesta.",
 			Required:    false,
 		},
 	},
@@ -29,16 +28,16 @@ var ClownfiestaCommand = discord.SlashCommandCreate{
 func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
 
-	reason, ok := data.OptString("source")
+	reason, ok := data.OptString("grund")
 	if !ok {
 		reason = "Clownfiesta 🤡"
 	}
 
-	voiceState, ok := event.Client().Caches().VoiceState(config.GUILD_ID, event.User().ID)
+	voiceState, ok := event.Client().Caches().VoiceState(*event.GuildID(), event.User().ID)
 	if !ok {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: "You need to be in a voice channel to use this command",
+			Content: "Um diesen Befehl zu nutzen, musst du dich in einem Voice-Channel befinden.",
 		})
 	}
 
@@ -52,7 +51,10 @@ func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate
 
 	usersInChannel := event.Client().Caches().AudioChannelMembers(voiceChannel)
 
-	event.DeferCreateMessage(false)
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
+
 	author := event.User()
 
 	var wg sync.WaitGroup
@@ -99,7 +101,7 @@ func ClownfiestaCommandHandler(event *events.ApplicationCommandInteractionCreate
 		}
 	}
 
-	_, err := event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+	_, err := event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Title: "Clownfiesta! 🤡",

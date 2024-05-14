@@ -29,6 +29,6 @@ func StopCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 	b.BotStatus = mybot.Resting
 
 	return event.CreateMessage(discord.MessageCreate{
-		Content: "Die Musik wurde gestopt und die Warteschlange gelöscht.",
+		Content: "Die Musik wurde gestoppt und die Warteschlange wurde gelöscht.",
 	})
 }

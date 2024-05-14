@@ -8,22 +8,21 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 	mybot "github.com/nico-mayer/discordbot/bot"
-	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
 
 var ClownsnaseCommand = discord.SlashCommandCreate{
 	Name:        "clownsnase",
-	Description: "Gib einem bre eine Clownsnase",
+	Description: "Verteile eine Clownsnase an einen User.",
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionUser{
 			Name:        "user",
-			Description: "Wähle einen user aus",
+			Description: "Wähle einen User aus.",
 			Required:    true,
 		},
 		discord.ApplicationCommandOptionString{
-			Name:        "reason",
-			Description: "Grund für die clownsnase",
+			Name:        "grund",
+			Description: "Grund für die Clownsnase?",
 			Required:    false,
 		},
 	},
@@ -34,7 +33,7 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate,
 
 	author := event.User()
 	target := data.User("user")
-	reason := data.String("reason")
+	reason := data.String("grund")
 
 	if target.Bot {
 		return event.CreateMessage(discord.MessageCreate{
@@ -43,7 +42,10 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate,
 		})
 	}
 
-	event.DeferCreateMessage(false)
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
+
 	if !db.UserInDatabase(target.ID) {
 		err := db.InsertDBUser(target.ID, target.Username)
 		if err != nil {
@@ -69,7 +71,7 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate,
 		return err
 	}
 
-	_, err = event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Title:       "Clownsnase Kassiert  🤡",
@@ -86,8 +88,8 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate,
 						Name:  "An: ",
 						Value: fmt.Sprintf("<@%s>", target.ID),
 					}, {
-						Name:  "Total: ",
-						Value: fmt.Sprintf("%d", nasenCount),
+						Name:  "Nasen: ",
+						Value: fmt.Sprintf("`%d`", nasenCount),
 					},
 				},
 			},

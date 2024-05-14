@@ -7,13 +7,12 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	mybot "github.com/nico-mayer/discordbot/bot"
-	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
 
 var LeaderboardCommand = discord.SlashCommandCreate{
 	Name:        "leaderboard",
-	Description: "Zeigt Clownsnasen Leaderboard an",
+	Description: "Zeige das Leaderboard für Clownsnasen an.",
 }
 
 func LeaderboardCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
@@ -22,9 +21,11 @@ func LeaderboardCommandHandler(event *events.ApplicationCommandInteractionCreate
 		return err
 	}
 
-	event.DeferCreateMessage(false)
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
 
-	_, err = event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{Embeds: []discord.Embed{
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{Embeds: []discord.Embed{
 		{
 			Title:       "Clownsnasen Leaderboard  🤡",
 			Thumbnail:   &discord.EmbedResource{URL: "https://media.tenor.com/81u64lUzA_QAAAAi/clown-peepo.gif"},
@@ -39,7 +40,7 @@ func formatLeaderboard(leaderboard []db.LeaderboardEntry) string {
 	var sb strings.Builder
 
 	if len(leaderboard) == 0 {
-		sb.WriteString("Bis jetzt hat noch niemand eine Clownsnase, verteile clownsnasen mit `/clownsnase`")
+		sb.WriteString("Bis jetzt hat noch niemand eine Clownsnase. Verteile Clownsnasen mit /clownsnase.")
 	}
 
 	for i, entry := range leaderboard {

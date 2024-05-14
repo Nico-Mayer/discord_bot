@@ -8,7 +8,6 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/jedib0t/go-pretty/table"
 	mybot "github.com/nico-mayer/discordbot/bot"
-	"github.com/nico-mayer/discordbot/config"
 	"github.com/nico-mayer/discordbot/db"
 )
 
@@ -36,7 +35,7 @@ func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate, b *m
 	if len(nasen) == 0 {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: fmt.Sprintf("<@%s> hat noch keine Clownsnase, du kannst ihm eine mit `/clownsnase` geben.", target.ID),
+			Content: fmt.Sprintf("<@%s> hat noch keine Clownsnase. Du kannst ihm eine mit `/clownsnase` geben.", target.ID),
 		})
 	}
 
@@ -45,8 +44,11 @@ func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate, b *m
 		return err
 	}
 
-	event.DeferCreateMessage(false)
-	_, err = event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
+
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Content: description,
 	})
 	return err

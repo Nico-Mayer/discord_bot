@@ -6,20 +6,22 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	mybot "github.com/nico-mayer/discordbot/bot"
-	"github.com/nico-mayer/discordbot/config"
 )
 
 var HelpCommand = discord.SlashCommandCreate{
 	Name:        "help",
-	Description: "Zeigt liste aller Commands",
+	Description: "Zeige alle verfügbaren Bot-Befehle an.",
 }
 
 func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
-	event.DeferCreateMessage(true)
 
 	var slashCommands []discord.SlashCommand
 
-	commands, err := event.Client().Rest().GetGuildCommands(config.APP_ID, config.GUILD_ID, false)
+	if err := event.DeferCreateMessage(true); err != nil {
+		return err
+	}
+
+	commands, err := event.Client().Rest().GetGuildCommands(event.ApplicationID(), *event.GuildID(), false)
 	if err != nil {
 		return err
 	}
@@ -30,10 +32,10 @@ func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 		}
 	}
 
-	_, err = event.Client().Rest().CreateFollowupMessage(config.APP_ID, event.Token(), discord.MessageCreate{
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
-				Title:       "ℹ️    Help",
+				Title:       "ℹ️ - Help",
 				Description: generateList(slashCommands),
 			},
 		},

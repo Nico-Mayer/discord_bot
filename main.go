@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/events"
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/commands"
@@ -17,6 +18,8 @@ import (
 )
 
 func main() {
+	slog.Info("starting bot...")
+	slog.Info("disgo version", slog.String("version", disgo.Version))
 	osSignals := make(chan os.Signal, 1)
 
 	// Setup bot

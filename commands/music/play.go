@@ -11,7 +11,6 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/voice"
 	mybot "github.com/nico-mayer/discordbot/bot"
-	"github.com/nico-mayer/discordbot/config"
 )
 
 var (
@@ -20,11 +19,11 @@ var (
 
 var PlayCommand = discord.SlashCommandCreate{
 	Name:        "play",
-	Description: "Startet die Wiedergabe eines Songs",
+	Description: "Starte die Wiedergabe eines Songs.",
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionString{
 			Name:        "query",
-			Description: "youtube url oder suche",
+			Description: "Nutze eine YouTube-URL oder führe eine Suche durch.",
 			Required:    true,
 		},
 	},
@@ -40,7 +39,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 	if !ok {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: "Du musst in einem voice channel sein um diesen command zu benutzen.",
+			Content: "Dieser Befehl erfordert, dass du dich in einem Voice-Channel befindest.",
 		})
 	}
 
@@ -51,7 +50,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 	song, err := b.Enqueue(query)
 	if err != nil {
 		event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
-			Content: "Fehler beim laden der songdaten",
+			Content: "Es gab einen Fehler beim Laden der Songdaten.",
 		})
 		return err
 	}
@@ -83,7 +82,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 	// Play SONG CASE
 	// CONNECT TO VOICE, IS A BLOCKING CALL SO RUN IN GO ROUTINE
 	go func() {
-		conn := b.Client.VoiceManager().CreateConn(config.GUILD_ID)
+		conn := b.Client.VoiceManager().CreateConn(*event.GuildID())
 		if err = conn.Open(context.TODO(), *voiceState.ChannelID, false, false); err != nil {
 			slog.Error("connecting to voice channel", err)
 		}
