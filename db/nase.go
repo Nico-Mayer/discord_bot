@@ -3,45 +3,63 @@ package db
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 type Nase struct {
-	ID       uuid.UUID `json:"id"`
-	UserID   string    `json:"userid"`
-	AuthorID string    `json:"authorid"`
-	Reason   string    `json:"reason"`
-	Created  time.Time `json:"created"`
+	ID       snowflake.ID `json:"id"`
+	UserID   snowflake.ID `json:"userid"`
+	AuthorID snowflake.ID `json:"authorid"`
+	Reason   string       `json:"reason"`
+	Created  time.Time    `json:"created"`
 }
 
-func GetNasenCount(userId string) (int, error) {
+func InsertNase(nase Nase) error {
+	var query string
+	var err error
+
+	if nase.Reason == "" {
+		query = "INSERT INTO nasen (id, userid, authorid, created) VALUES ($1, $2, $3, $4)"
+		_, err = DB.Exec(query, nase.ID, nase.UserID, nase.AuthorID, nase.Created)
+	} else {
+		query = "INSERT INTO nasen (id, userid, authorid, reason, created) VALUES ($1, $2, $3, $4, $5)"
+		_, err = DB.Exec(query, nase.ID, nase.UserID, nase.AuthorID, nase.Reason, nase.Created)
+	}
+
+	return err
+}
+
+func GetNasenForUser(dbUserID snowflake.ID) ([]Nase, error) {
+	var nasen []Nase
+
+	query := "SELECT * FROM nasen WHERE userid = $1 ORDER BY created DESC"
+
+	rows, err := DB.Query(query, dbUserID)
+	if err != nil {
+		return []Nase{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var nase Nase
+
+		err := rows.Scan(&nase.ID, &nase.UserID, &nase.AuthorID, &nase.Reason, &nase.Created)
+		if err != nil {
+			return []Nase{}, err
+		}
+
+		nasen = append(nasen, nase)
+	}
+
+	return nasen, nil
+}
+
+func GetNasenCountForUser(dbUserID snowflake.ID) (int, error) {
 	var count int
 	query := "SELECT COUNT(*) FROM nasen WHERE userid = $1"
-	err := DB.QueryRow(query, userId).Scan(&count)
+	err := DB.QueryRow(query, dbUserID).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
 	return count, nil
-}
-
-func GiveNase(users []User, authorId string, reason string) error {
-	query := "INSERT INTO nasen (id, userid, authorid, reason, created) VALUES ($1, $2, $3, $4, $5)"
-	for _, user := range users {
-
-		nasenId := uuid.New()
-		created := time.Now()
-
-		if !user.InDatabase() {
-			err := InsertUser(user.ID, user.Name)
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err := DB.Exec(query, nasenId, user.ID, authorId, reason, created)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

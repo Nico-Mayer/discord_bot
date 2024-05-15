@@ -3,49 +3,83 @@ package general
 import (
 	"fmt"
 
-	"github.com/bwmarrin/discordgo"
-	"github.com/nico-mayer/go_discordbot/db"
-	"github.com/nico-mayer/go_discordbot/utils"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	mybot "github.com/nico-mayer/discordbot/bot"
+	"github.com/nico-mayer/discordbot/db"
 )
 
-func User(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	var target *discordgo.User
+var UserCommand = discord.SlashCommandCreate{
+	Name:        "user",
+	Description: "Zeige Informationen über einen User.",
+	Options: []discord.ApplicationCommandOption{
+		discord.ApplicationCommandOptionUser{
+			Name:        "user",
+			Description: "Wähle einen User aus.",
+			Required:    true,
+		},
+	},
+}
 
-	for _, option := range i.ApplicationCommandData().Options {
-		if option.Type == discordgo.ApplicationCommandOptionUser {
-			target = option.UserValue(s)
+func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
+	data := event.SlashCommandInteractionData()
+	targetUser := data.User("user")
+
+	if targetUser.Bot {
+		return event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
+			Content: "Bot-Informationen sind nicht abrufbar.",
+		})
+	}
+
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
+
+	if !db.UserInDatabase(targetUser.ID) {
+		err := db.InsertDBUser(targetUser.ID, targetUser.Username)
+		if err != nil {
+			return err
 		}
 	}
 
-	var dbUser db.User
+	dbUser, err := db.GetUser(targetUser.ID)
+	if err != nil {
+		return err
+	}
 
-	dbUser, err := db.GetUser(target.ID)
-	utils.Check(err)
+	userNasenCount, err := db.GetNasenCountForUser(dbUser.ID)
+	if err != nil {
+		return err
+	}
 
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{
-				{
-					Type:      discordgo.EmbedTypeRich,
-					Title:     target.Username,
-					Color:     0x00ff00,
-					Thumbnail: &discordgo.MessageEmbedThumbnail{URL: target.AvatarURL("")},
-					Fields: []*discordgo.MessageEmbedField{
-						{
-							Name:  "Level",
-							Value: fmt.Sprintf("```%d```", dbUser.Level),
-						}, {
-							Name:  "Exp",
-							Value: fmt.Sprintf("```%d```", dbUser.Exp),
-						}, {
-							Name:  "Nasen",
-							Value: fmt.Sprintf("```%d```", len(dbUser.GetNasen())),
-						},
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+		Embeds: []discord.Embed{
+			{
+				Title:       targetUser.Username,
+				Description: "User stats:",
+				Color:       0x00ff00,
+				Thumbnail: &discord.EmbedResource{
+					URL: *targetUser.AvatarURL(),
+				},
+				Fields: []discord.EmbedField{
+					{
+						Name: "Level",
+						// Todo add level calculation
+						Value: fmt.Sprintf("```%d```", 1),
+					}, {
+						Name:  "Exp",
+						Value: fmt.Sprintf("```%d```", dbUser.Exp),
+					}, {
+						Name:  "Nasen",
+						Value: fmt.Sprintf("```%d```", userNasenCount),
 					},
+				},
+				Footer: &discord.EmbedFooter{
+					Text: "Für eine Liste aller Clownsnasen des Users, verwende `/nasen`.",
 				},
 			},
 		},
 	})
-	utils.Check(err)
+	return err
 }

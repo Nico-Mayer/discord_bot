@@ -4,70 +4,83 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bwmarrin/discordgo"
-	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/nico-mayer/go_discordbot/db"
-	"github.com/nico-mayer/go_discordbot/utils"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/jedib0t/go-pretty/table"
+	mybot "github.com/nico-mayer/discordbot/bot"
+	"github.com/nico-mayer/discordbot/db"
 )
 
-func Nasen(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	var target *discordgo.User
-
-	for _, option := range i.ApplicationCommandData().Options {
-		if option.Type == discordgo.ApplicationCommandOptionUser {
-			target = option.UserValue(s)
-		}
-	}
-
-	user, err := db.GetUser(target.ID)
-	if err != nil {
-		utils.ReplyError(s, i, err, "Bre hat noch keine Clownsnasen! gib ihm eine mit `/clownsnase`")
-		return
-	}
-
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
-	utils.Check(err)
-
-	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-		Content: getDesc(user),
-	})
-	utils.Check(err)
+var NasenCommand = discord.SlashCommandCreate{
+	Name:        "nasen",
+	Description: "Zeige eine Liste aller Nasen des Users.",
+	Options: []discord.ApplicationCommandOption{
+		discord.ApplicationCommandOptionUser{
+			Name:        "user",
+			Description: "Wähle einen User aus",
+			Required:    true,
+		},
+	},
 }
 
-func getDesc(user db.User) string {
+func NasenCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
+	data := event.SlashCommandInteractionData()
+	target := data.User("user")
+
+	nasen, err := db.GetNasenForUser(target.ID)
+	if err != nil {
+		return err
+	}
+
+	if len(nasen) == 0 {
+		return event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
+			Content: fmt.Sprintf("<@%s> hat noch keine Clownsnase. Du kannst ihm eine mit `/clownsnase` geben.", target.ID),
+		})
+	}
+
+	description, err := formatDescription(target, nasen)
+	if err != nil {
+		return err
+	}
+
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
+
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+		Content: description,
+	})
+	return err
+}
+
+func formatDescription(user discord.User, nasen []db.Nase) (string, error) {
 	var sb strings.Builder
 
 	heading := fmt.Sprintf("Alle Clownsnasen von <@%s> \n", user.ID)
 	sb.WriteString(heading)
 	sb.WriteString("```\n")
-	sb.WriteString(generateTable(user, user.GetNasen()))
-	sb.WriteString("```")
 
-	return sb.String()
-}
-
-func generateTable(user db.User, nasen []db.Nase) string {
-	var tableString strings.Builder
 	t := table.NewWriter()
-	t.SetOutputMirror(&tableString)
+	t.SetOutputMirror(&sb)
 	t.AppendHeader(table.Row{"Datum", "Von", "Grund"})
 	t.SetStyle(table.StyleLight)
 	t.Style().Options.SeparateRows = true
 	t.SetAutoIndex(true)
 
-	for _, nase := range nasen {
+	for i := len(nasen) - 1; i >= 0; i-- {
+		nase := nasen[i]
 		author, err := db.GetUser(nase.AuthorID)
-		utils.Check(err)
+		if err != nil {
+			return "", err
+		}
 
 		date := fmt.Sprintf("%v", nase.Created.Format("02-Jan-06"))
 		t.AppendRow(table.Row{date, author.Name, nase.Reason})
 	}
 
-	t.AppendSeparator()
-
 	t.Render()
+	sb.WriteString("```")
 
-	return tableString.String()
+	return sb.String(), nil
 }

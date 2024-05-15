@@ -2,71 +2,98 @@ package nasen
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/bwmarrin/discordgo"
-	"github.com/nico-mayer/go_discordbot/db"
-	"github.com/nico-mayer/go_discordbot/utils"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/snowflake/v2"
+	mybot "github.com/nico-mayer/discordbot/bot"
+	"github.com/nico-mayer/discordbot/db"
 )
 
-func Clownsnase(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	var target db.User
-	var thumbnail *discordgo.MessageEmbedThumbnail
-	authorID := i.Member.User.ID
-	reason := "einfach schlecht"
+var ClownsnaseCommand = discord.SlashCommandCreate{
+	Name:        "clownsnase",
+	Description: "Verteile eine Clownsnase an einen User.",
+	Options: []discord.ApplicationCommandOption{
+		discord.ApplicationCommandOptionUser{
+			Name:        "user",
+			Description: "Wähle einen User aus.",
+			Required:    true,
+		},
+		discord.ApplicationCommandOptionString{
+			Name:        "grund",
+			Description: "Grund für die Clownsnase?",
+			Required:    false,
+		},
+	},
+}
 
-	if len(i.ApplicationCommandData().Options) > 0 {
-		for _, option := range i.ApplicationCommandData().Options {
-			if option.Type == discordgo.ApplicationCommandOptionUser {
-				target.ID = option.UserValue(s).ID
-				target.Name = option.UserValue(s).Username
-				thumbnail = &discordgo.MessageEmbedThumbnail{
-					URL: option.UserValue(s).AvatarURL(""),
-				}
-			}
+func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
+	data := event.SlashCommandInteractionData()
 
-			if option.Type == discordgo.ApplicationCommandOptionString {
-				reason = option.StringValue()
-			}
-		}
-	} else {
-		return
+	author := event.User()
+	target := data.User("user")
+	reason := data.String("grund")
+
+	if target.Bot {
+		return event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
+			Content: "Du kannst mir keine clownsnase geben ich bin fucking " + fmt.Sprintf("<@%s>", target.ID),
+		})
 	}
 
-	nasenCount, err := db.GetNasenCount(target.ID)
-	utils.Check(err)
-	err = db.GiveNase([]db.User{target}, authorID, reason)
-	utils.Check(err)
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
 
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
+	if !db.UserInDatabase(target.ID) {
+		err := db.InsertDBUser(target.ID, target.Username)
+		if err != nil {
+			return err
+		}
+	}
 
-			Embeds: []*discordgo.MessageEmbed{
-				{
-					Type:        discordgo.EmbedTypeRich,
-					Title:       "Clownsnase Kassiert  🤡",
-					Thumbnail:   thumbnail,
-					Description: fmt.Sprintf("`Grund: %s`", reason),
-					Fields: []*discordgo.MessageEmbedField{
-						{
-							Name:   "Von: ",
-							Value:  fmt.Sprintf("<@%s>", authorID),
-							Inline: true,
-						},
-						{
-							Name:   "An: ",
-							Value:  fmt.Sprintf("<@%s>", target.ID),
-							Inline: true,
-						},
-						{
-							Name:   "Total: ",
-							Value:  fmt.Sprintf("%d", nasenCount+1),
-							Inline: true,
-						},
+	nase := db.Nase{
+		ID:       snowflake.New(time.Now()),
+		UserID:   target.ID,
+		AuthorID: author.ID,
+		Reason:   reason,
+		Created:  time.Now(),
+	}
+
+	err := db.InsertNase(nase)
+	if err != nil {
+		return err
+	}
+
+	nasenCount, err := db.GetNasenCountForUser(target.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+		Embeds: []discord.Embed{
+			{
+				Title:       "Clownsnase Kassiert  🤡",
+				Description: fmt.Sprintf("`Grund: %s`", reason),
+				Color:       0x00ff00,
+				Thumbnail: &discord.EmbedResource{
+					URL: *target.AvatarURL(),
+				},
+				Fields: []discord.EmbedField{
+					{
+						Name:  "Von",
+						Value: fmt.Sprintf("<@%s>", author.ID),
+					}, {
+						Name:  "An: ",
+						Value: fmt.Sprintf("<@%s>", target.ID),
+					}, {
+						Name:  "Nasen: ",
+						Value: fmt.Sprintf("`%d`", nasenCount),
 					},
 				},
 			},
 		},
 	})
-	utils.Check(err)
+	return err
 }

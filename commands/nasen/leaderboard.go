@@ -2,55 +2,57 @@ package nasen
 
 import (
 	"fmt"
-
 	"strings"
 
-	"github.com/bwmarrin/discordgo"
-	"github.com/nico-mayer/go_discordbot/db"
-	"github.com/nico-mayer/go_discordbot/utils"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	mybot "github.com/nico-mayer/discordbot/bot"
+	"github.com/nico-mayer/discordbot/db"
 )
 
-func Leaderboard(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
-	utils.Check(err)
-
-	leaderboard, err := db.GetLeaderboard()
-	utils.Check(err)
-
-	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-		Embeds: []*discordgo.MessageEmbed{
-			{
-				Type:  discordgo.EmbedTypeRich,
-				Title: "Clownsnasen Leaderboard  🤡",
-				Thumbnail: &discordgo.MessageEmbedThumbnail{
-					URL: "https://media.tenor.com/81u64lUzA_QAAAAi/clown-peepo.gif",
-				},
-				Description: formatLeaderboard(leaderboard),
-			},
-		},
-	})
-	utils.Check(err)
+var LeaderboardCommand = discord.SlashCommandCreate{
+	Name:        "leaderboard",
+	Description: "Zeige das Leaderboard für Clownsnasen an.",
 }
 
-func formatLeaderboard(leaderboard []db.User) string {
+func LeaderboardCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
+	leaderboard, err := db.GetLeaderboard()
+	if err != nil {
+		return err
+	}
+
+	if err := event.DeferCreateMessage(false); err != nil {
+		return err
+	}
+
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{Embeds: []discord.Embed{
+		{
+			Title:       "Clownsnasen Leaderboard  🤡",
+			Thumbnail:   &discord.EmbedResource{URL: "https://media.tenor.com/81u64lUzA_QAAAAi/clown-peepo.gif"},
+			Description: formatLeaderboard(leaderboard),
+		},
+	}})
+
+	return err
+}
+
+func formatLeaderboard(leaderboard []db.LeaderboardEntry) string {
 	var sb strings.Builder
 
 	if len(leaderboard) == 0 {
-		sb.WriteString("Bis jetzt hat noch niemand eine Clownsnase, verteile clownsnasen mit `/clownsnase`")
+		sb.WriteString("Bis jetzt hat noch niemand eine Clownsnase. Verteile Clownsnasen mit /clownsnase.")
 	}
 
-	for i, user := range leaderboard {
+	for i, entry := range leaderboard {
 		n := "n"
 
-		if user.NasenCount == 1 {
+		if entry.NasenCount == 1 {
 			n = ""
-		} else if user.NasenCount == 0 {
+		} else if entry.NasenCount == 0 {
 			continue
 		}
 
-		str := fmt.Sprintf("**%d.** <@%s> = %d Nase%s\n", i+1, user.ID, user.NasenCount, n)
+		str := fmt.Sprintf("**%d.** <@%s> = %d Nase%s\n", i+1, entry.UserID, entry.NasenCount, n)
 		sb.WriteString(str)
 	}
 

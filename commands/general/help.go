@@ -2,41 +2,56 @@ package general
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/bwmarrin/discordgo"
-	"github.com/nico-mayer/go_discordbot/commands"
-	"github.com/nico-mayer/go_discordbot/utils"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	mybot "github.com/nico-mayer/discordbot/bot"
 )
 
-func Help(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	var sb strings.Builder
+var HelpCommand = discord.SlashCommandCreate{
+	Name:        "help",
+	Description: "Zeige alle verfügbaren Bot-Befehle an.",
+}
 
-	for _, collection := range commands.Collections {
-		icon := string(collection.Icon)
-		name := collection.Name
-		str := fmt.Sprintf("\n**%s - %s:**\n", icon, name)
-		sb.WriteString(str)
-		for _, command := range collection.Commands {
-			name := command.Name
-			desc := command.Description
-			str := fmt.Sprintf("- `/%s` - %s\n", name, desc)
-			sb.WriteString(str)
+func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
+
+	var slashCommands []discord.SlashCommand
+
+	if err := event.DeferCreateMessage(true); err != nil {
+		return err
+	}
+
+	commands, err := event.Client().Rest().GetGuildCommands(event.ApplicationID(), *event.GuildID(), false)
+	if err != nil {
+		return err
+	}
+
+	for _, command := range commands {
+		if slashCommand, ok := command.(discord.SlashCommand); ok {
+			slashCommands = append(slashCommands, slashCommand)
 		}
 	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-
-			Embeds: []*discordgo.MessageEmbed{
-				{
-					Type:        discordgo.EmbedTypeRich,
-					Title:       "Help:",
-					Description: sb.String(),
-				},
+	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+		Embeds: []discord.Embed{
+			{
+				Title:       "ℹ️ - Help",
+				Description: generateList(slashCommands),
 			},
 		},
 	})
-	utils.Check(err)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func generateList(slashCommands []discord.SlashCommand) (desc string) {
+	for _, command := range slashCommands {
+		line := fmt.Sprintf("- `/%s` - (%s)\n", command.Name(), command.Description)
+		desc = desc + line
+	}
+	return desc
 }

@@ -1,85 +1,77 @@
-package bot
+package mybot
 
 import (
+	"context"
 	"log"
+	"log/slog"
 	"os"
-	"os/signal"
 
-	"github.com/bwmarrin/discordgo"
-
-	"github.com/nico-mayer/go_discordbot/commands"
-	"github.com/nico-mayer/go_discordbot/commands/general"
-	"github.com/nico-mayer/go_discordbot/commands/music"
-	"github.com/nico-mayer/go_discordbot/commands/nasen"
-	"github.com/nico-mayer/go_discordbot/config"
-	"github.com/nico-mayer/go_discordbot/levels"
-	"github.com/nico-mayer/go_discordbot/player"
-	"github.com/nico-mayer/go_discordbot/utils"
+	"github.com/disgoorg/disgo"
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/cache"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/disgo/gateway"
 )
 
-var session *discordgo.Session
+type BotStatus int32
 
-func Run() {
-	session, _ = discordgo.New("Bot " + config.TOKEN)
+const (
+	Resting BotStatus = 0
+	Playing BotStatus = 1
+)
 
-	// Register Commands
-	commands.RegisterCommands(session)
+type Bot struct {
+	Client        bot.Client
+	BotStatus     BotStatus
+	Handlers      map[string]func(event *events.ApplicationCommandInteractionCreate, b *Bot) error
+	Queue         []Song
+	SkipInterrupt chan bool
+}
 
-	// Init needed Clients
-	player := player.NewPlayer(session)
-
-	session.AddHandler(func(
-		s *discordgo.Session,
-		i *discordgo.InteractionCreate,
-	) {
-		data := i.ApplicationCommandData()
-
-		switch data.Name {
-		case "help":
-			general.Help(s, i)
-		case "user":
-			general.User(s, i)
-		case "clownsnase":
-			nasen.Clownsnase(s, i)
-		case "clownfiesta":
-			nasen.Clownfiesta(s, i)
-		case "leaderboard":
-			nasen.Leaderboard(s, i)
-		case "nasen":
-			nasen.Nasen(s, i)
-		case "play":
-			music.Play(s, i, player)
-		case "stop":
-			music.Stop(s, i, player)
-		case "skip":
-			music.Skip(s, i, player)
-		case "pause":
-			music.Pause(s, i, player)
-		case "resume":
-			music.Resume(s, i, player)
-		default:
-			return
-		}
-
-	})
-
-	levels.Init(session)
-
-	err := session.Open()
-	if err != nil {
-		log.Fatal(err)
+func NewBot() *Bot {
+	return &Bot{
+		BotStatus:     Resting,
+		SkipInterrupt: make(chan bool, 1),
 	}
+}
 
-	err = session.UpdateGameStatus(0, "mit seinem Zipfel")
-	utils.Check(err)
+func (b *Bot) SetupBot() {
+	var err error
 
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
-	log.Println("Press Ctrl+C to exit")
-	<-stop
+	// Initialize bot client
+	b.Client, err = disgo.New(
+		os.Getenv("TOKEN"),
+		bot.WithCacheConfigOpts(
+			cache.WithCaches(cache.FlagVoiceStates, cache.FlagMembers, cache.FlagChannels),
+		),
+		bot.WithGatewayConfigOpts(
+			gateway.WithIntents(
+				gateway.IntentGuilds,
+				gateway.IntentGuildMessages,
+				gateway.IntentGuildVoiceStates,
+			),
+		),
 
-	err = session.Close()
+		// Slash command listener
+		bot.WithEventListenerFunc(b.onApplicationCommand),
+	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("FATAL: failed to setup bot client", err)
+	}
+	defer b.Client.Close(context.TODO())
+
+}
+
+func (b *Bot) onApplicationCommand(event *events.ApplicationCommandInteractionCreate) {
+	data := event.SlashCommandInteractionData()
+
+	handler, ok := b.Handlers[data.CommandName()]
+	if !ok {
+		slog.Info("unknown command", slog.String("command", data.CommandName()))
+		return
+	}
+	err := handler(event, b)
+	if err != nil {
+		slog.Error("executing slash command", slog.String("command", data.CommandName()), err)
 	}
 }

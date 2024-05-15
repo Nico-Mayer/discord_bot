@@ -1,20 +1,34 @@
 package music
 
 import (
-	"github.com/bwmarrin/discordgo"
-	"github.com/nico-mayer/go_discordbot/player"
-	"github.com/nico-mayer/go_discordbot/utils"
+	"context"
+
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	mybot "github.com/nico-mayer/discordbot/bot"
 )
 
-func Stop(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
+var StopCommand = discord.SlashCommandCreate{
+	Name:        "stop",
+	Description: "Stoppt den Musikbot und löscht die Warteschlange.",
+}
 
-	p.Stop()
+func StopCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
+	if b.BotStatus == mybot.Resting {
+		return event.CreateMessage(discord.MessageCreate{
+			Flags:   discord.MessageFlagEphemeral,
+			Content: "Ich spiele grade keine musik du kek, versuch nicht mich zu stoppen!",
+		})
+	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "Tschüss, euer DJ Rosine",
-		},
+	go func() {
+		conn := b.Client.VoiceManager().GetConn(*event.GuildID())
+		conn.Close(context.TODO())
+	}()
+	b.ClearQueue()
+	b.BotStatus = mybot.Resting
+
+	return event.CreateMessage(discord.MessageCreate{
+		Content: "Die Musik wurde gestoppt und die Warteschlange wurde gelöscht.",
 	})
-	utils.Check(err)
 }

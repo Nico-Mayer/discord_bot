@@ -4,26 +4,32 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"log/slog"
+	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/nico-mayer/go_discordbot/config"
 )
 
 var DB *sql.DB
 
-func Connect() error {
-	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", config.PGUSER, config.PGPASSWORD, config.PGHOST, config.PGPORT, config.PGDATABASE)
+func init() {
+	if os.Getenv("ENV") != "PROD" {
+		slog.Info("running on stage enviroment, loading env variables from .env file")
+		godotenv.Load()
+	}
+
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", os.Getenv("PGUSER"), os.Getenv("PGPASSWORD"), os.Getenv("PGHOST"), os.Getenv("PGPORT"), os.Getenv("PGDATABASE"))
 	var err error
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
-		return err
+		log.Fatalf("failed to open database: %v", err)
 	}
 
 	err = DB.Ping()
 	if err != nil {
-		return err
+		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	log.Println("Successfully connected to database")
-	return nil
+	slog.Info("successfully connected to database.")
 }
