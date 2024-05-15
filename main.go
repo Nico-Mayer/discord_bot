@@ -13,6 +13,7 @@ import (
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/commands"
 	"github.com/nico-mayer/discordbot/commands/general"
+	"github.com/nico-mayer/discordbot/commands/lol"
 	"github.com/nico-mayer/discordbot/commands/music"
 	"github.com/nico-mayer/discordbot/commands/nasen"
 )
@@ -27,15 +28,16 @@ func main() {
 
 	// Populate slash handler slice
 	bot.Handlers = map[string]func(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error{
-		general.HelpCommand.Name:      general.HelpCommandHandler,
-		general.UserCommand.Name:      general.UserCommandHandler,
-		nasen.ClownsnaseCommand.Name:  nasen.ClownsnaseCommandHandler,
-		nasen.ClownfiestaCommand.Name: nasen.ClownfiestaCommandHandler,
-		nasen.NasenCommand.Name:       nasen.NasenCommandHandler,
-		nasen.LeaderboardCommand.Name: nasen.LeaderboardCommandHandler,
-		music.PlayCommand.Name:        music.PlayCommandHandler,
-		music.StopCommand.Name:        music.StopCommandHandler,
-		music.SkipCommand.Name:        music.SkipCommandHandler,
+		general.HelpCommand.Name:       general.HelpCommandHandler,
+		general.UserCommand.Name:       general.UserCommandHandler,
+		nasen.ClownsnaseCommand.Name:   nasen.ClownsnaseCommandHandler,
+		nasen.ClownfiestaCommand.Name:  nasen.ClownfiestaCommandHandler,
+		nasen.NasenCommand.Name:        nasen.NasenCommandHandler,
+		nasen.LeaderboardCommand.Name:  nasen.LeaderboardCommandHandler,
+		music.PlayCommand.Name:         music.PlayCommandHandler,
+		music.StopCommand.Name:         music.StopCommandHandler,
+		music.SkipCommand.Name:         music.SkipCommandHandler,
+		lol.AddRiotAccountCommand.Name: lol.AddRiotAccountCommandHandler,
 	}
 
 	bot.SetupBot()

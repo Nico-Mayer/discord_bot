@@ -39,3 +39,14 @@ func UserInDatabase(id snowflake.ID) bool {
 
 	return err == nil
 }
+
+func (user *DBUser) SetRiotPUUID(puuid string) error {
+	query := "UPDATE users SET riot_puuid = $1 WHERE id = $2"
+
+	_, err := DB.Exec(query, puuid, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

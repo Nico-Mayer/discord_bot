@@ -58,6 +58,7 @@ func (b *Bot) SetupBot() {
 	if err != nil {
 		log.Fatal("FATAL: failed to setup bot client", err)
 	}
+
 	defer b.Client.Close(context.TODO())
 
 }
