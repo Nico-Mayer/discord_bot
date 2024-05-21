@@ -12,7 +12,7 @@ import (
 
 var AddRiotAccountCommand = discord.SlashCommandCreate{
 	Name:        "add_riot_account",
-	Description: "Füge deinen riot account hinzu",
+	Description: "Füge deinen Riot-Account hinzu.",
 	Options: []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionString{
 			Name:        "name",
@@ -21,7 +21,7 @@ var AddRiotAccountCommand = discord.SlashCommandCreate{
 		},
 		discord.ApplicationCommandOptionString{
 			Name:        "tagline",
-			Description: "Riot ID tagline (without #)",
+			Description: "Riot ID Tagline (ohne #)",
 			Required:    true,
 		},
 	},
@@ -55,7 +55,7 @@ func AddRiotAccountCommandHandler(event *events.ApplicationCommandInteractionCre
 	if err != nil {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
-			Content: "ERROR fetsching userdata from database",
+			Content: "ERROR fetching user data from database",
 		})
 	}
 

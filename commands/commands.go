@@ -23,6 +23,7 @@ var commands = []discord.ApplicationCommandCreate{
 	music.StopCommand,
 	music.SkipCommand,
 	lol.AddRiotAccountCommand,
+	lol.LiveGameCommand,
 }
 
 func RegisterSlashCommands(client bot.Client, guildID snowflake.ID) {

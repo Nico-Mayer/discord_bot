@@ -38,6 +38,7 @@ func main() {
 		music.StopCommand.Name:         music.StopCommandHandler,
 		music.SkipCommand.Name:         music.SkipCommandHandler,
 		lol.AddRiotAccountCommand.Name: lol.AddRiotAccountCommandHandler,
+		lol.LiveGameCommand.Name:       lol.LiveGameCommandHandler,
 	}
 
 	bot.SetupBot()
