@@ -12,6 +12,11 @@ import (
 	"github.com/nico-mayer/discordbot/db"
 )
 
+const (
+	RED_SIDE  = 100
+	BLUE_SIDE = 200
+)
+
 var LiveGameCommand = discord.SlashCommandCreate{
 	Name:        "live_game",
 	Description: "Zeige Live-Spieldaten für einen User an.",
@@ -23,11 +28,6 @@ var LiveGameCommand = discord.SlashCommandCreate{
 		},
 	},
 }
-
-const (
-	RED_SIDE  = 100
-	BLUE_SIDE = 200
-)
 
 func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
@@ -45,7 +45,7 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 		if err != nil {
 			return event.CreateMessage(discord.MessageCreate{
 				Flags:   discord.MessageFlagEphemeral,
-				Content: "ERROR putting uset into database",
+				Content: "ERROR putting user into database",
 			})
 		}
 
@@ -74,7 +74,7 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 		return err
 	}
 
-	account, err := GolioClient.Riot.Account.GetByPUUID(dbuser.RiotPUUID.String)
+	targetRiotAccount, err := GolioClient.Riot.Account.GetByPUUID(dbuser.RiotPUUID.String)
 	if err != nil {
 		event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 			Content: fmt.Sprintf("ERROR account not found %s", target.ID),
@@ -82,7 +82,7 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 		return err
 	}
 
-	liveGame, err := GolioClient.Riot.LoL.Spectator.GetCurrent(account.Puuid)
+	liveGame, err := GolioClient.Riot.LoL.Spectator.GetCurrent(targetRiotAccount.Puuid)
 	if err != nil {
 		event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 			Content: fmt.Sprintf("<@%s> ist aktuell in keinem spiel", target.ID),
@@ -90,12 +90,19 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 		return err
 	}
 
-	var inline bool = true
+	if liveGame.GameMode != "CLASSIC" {
+		event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
+			Content: fmt.Sprintf("<@%s> ist in einem spielmodus der aktuell nicht unterstuetzt wird.", target.ID),
+		})
+		return err
+	}
 
+	var inline bool = true
 	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
-				Title: fmt.Sprintf("🔎 Live Game - %s#%s", account.GameName, account.TagLine),
+				Title:       fmt.Sprintf("🔎 Live Game - %s#%s", targetRiotAccount.GameName, targetRiotAccount.TagLine),
+				Description: fmt.Sprintf("Ingame since [`%d`]", liveGame.GameLength),
 				Fields: []discord.EmbedField{
 					{
 						Name:   "🔵 Blue Team",
@@ -121,12 +128,12 @@ func getTeam(liveGame *lol.GameInfo, teamID int) string {
 			var champName string
 			var urlExtension string
 
-			playerAccount, err := GolioClient.Riot.Account.GetByPUUID(participant.PUUID)
+			participantRiotAccount, err := GolioClient.Riot.Account.GetByPUUID(participant.PUUID)
 			if err != nil {
 				urlExtension = "unknown"
 				slog.Error("get participant account", err)
 			} else {
-				urlExtension = strings.ReplaceAll(playerAccount.GameName, " ", "%20") + "-" + playerAccount.TagLine
+				urlExtension = strings.ReplaceAll(participantRiotAccount.GameName, " ", "%20") + "-" + participantRiotAccount.TagLine
 			}
 
 			champ, err := participant.GetChampion(GolioClient.DataDragon)
@@ -137,7 +144,13 @@ func getTeam(liveGame *lol.GameInfo, teamID int) string {
 				champName = champ.Name
 			}
 
-			res.WriteString(fmt.Sprintf("`%s` - [%s#%s](https://www.op.gg/summoners/euw/%s) \n", champName, playerAccount.GameName, playerAccount.TagLine, urlExtension))
+			res.WriteString(fmt.Sprintf(
+				"`%s` - [%s#%s](https://www.op.gg/summoners/euw/%s) \n",
+				champName,
+				participantRiotAccount.GameName,
+				participantRiotAccount.TagLine,
+				urlExtension,
+			))
 		}
 	}
 

@@ -77,7 +77,7 @@ func AddRiotAccountCommandHandler(event *events.ApplicationCommandInteractionCre
 					IconURL: *author.AvatarURL(),
 				},
 				Title:       "✅ - Account added",
-				Description: fmt.Sprintf("Account: [`%s`]", account.GameName),
+				Description: fmt.Sprintf("Account: [`%s#%s`]", account.GameName, account.TagLine),
 			},
 		},
 	})
