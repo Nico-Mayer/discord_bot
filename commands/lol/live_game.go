@@ -101,8 +101,8 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
-				Title:       fmt.Sprintf("🔎 Live Game - %s#%s", targetRiotAccount.GameName, targetRiotAccount.TagLine),
-				Description: fmt.Sprintf("Ingame since [`%d`]", liveGame.GameLength),
+				Title:       fmt.Sprintf("🔎 - Live Game [%s#%s]", targetRiotAccount.GameName, targetRiotAccount.TagLine),
+				Description: fmt.Sprintf("Ingame seit [`%d`]", liveGame.GameLength),
 				Fields: []discord.EmbedField{
 					{
 						Name:   "🔵 Blue Team",
