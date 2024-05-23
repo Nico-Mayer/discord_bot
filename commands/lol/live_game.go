@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	RED_SIDE  = 100
-	BLUE_SIDE = 200
+	RED_SIDE        = 100
+	BLUE_SIDE       = 200
+	SPECTATOR_DELAY = 240
 )
 
 var LiveGameCommand = discord.SlashCommandCreate{
@@ -102,7 +103,7 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 		Embeds: []discord.Embed{
 			{
 				Title:       fmt.Sprintf("🔎 - Live Game [%s#%s]", targetRiotAccount.GameName, targetRiotAccount.TagLine),
-				Description: fmt.Sprintf("Ingame seit [`%d`]", liveGame.GameLength),
+				Description: fmt.Sprintf("Ingame seit [`%s min`]", secToMinutesAndSec(liveGame.GameLength+SPECTATOR_DELAY)),
 				Fields: []discord.EmbedField{
 					{
 						Name:   "🔵 Blue Team",
@@ -155,4 +156,11 @@ func getTeam(liveGame *lol.GameInfo, teamID int) string {
 	}
 
 	return res.String()
+}
+
+func secToMinutesAndSec(seconds int) string {
+	minutes := seconds / 60
+	sec := seconds % 60
+
+	return fmt.Sprintf("%d:%02d", minutes, sec)
 }
