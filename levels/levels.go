@@ -14,8 +14,6 @@ const (
 	EXP_NEEDED_FOR_LEVEL_UP int = 250
 )
 
-// old level 5 1196937224634257479
-
 var levelMapping = map[int]string{
 	5:  "1196937224634257479",
 	15: "1196936971776438302",
@@ -24,33 +22,29 @@ var levelMapping = map[int]string{
 	60: "696671960507351100",
 }
 
-func GrantExpToUser(botClient bot.Client, userId snowflake.ID, username string, exp int) error {
+func GrantExpToUser(userId snowflake.ID, username string, exp int) (int, bool, error) {
 	if !db.UserInDatabase(userId) {
 		err := db.InsertDBUser(userId, username)
 		if err != nil {
-			return err
+			return 0, false, err
 		}
 	}
 
 	dbUser, err := db.GetUser(userId)
 	if err != nil {
-		return err
+		return 0, false, err
 	}
 
 	err = dbUser.GrantExp(exp)
 	if err != nil {
-		return err
+		return 0, false, err
 	}
 
 	oldLevel := CalcUserLevel(dbUser.Exp)
 	newLevel := CalcUserLevel(dbUser.Exp + exp)
-
 	levelUp := oldLevel != newLevel
-	if levelUp {
-		handleLevelUp(botClient, userId, newLevel)
-	}
 
-	return nil
+	return newLevel, levelUp, err
 }
 
 func CalcUserLevel(exp int) int {
@@ -61,7 +55,8 @@ func CalcUserLevel(exp int) int {
 	return exp / EXP_NEEDED_FOR_LEVEL_UP
 }
 
-func handleLevelUp(botClient bot.Client, userId snowflake.ID, level int) {
+func HandleLevelUp(botClient bot.Client, userId snowflake.ID, level int) {
+
 	newRank := levelMapping[level]
 	if newRank != "" {
 		err := botClient.Rest().AddMemberRole(snowflake.GetEnv("GUILD_ID"), userId, snowflake.MustParse(newRank))

@@ -91,11 +91,13 @@ func (b *Bot) onMessageCreate(event *events.MessageCreate) {
 		return
 	}
 
-	err := levels.GrantExpToUser(event.Client(), author.ID, author.Username, levels.EXP_PER_MESSAGE)
+	level, levelUp, err := levels.GrantExpToUser(author.ID, author.Username, levels.EXP_PER_MESSAGE)
 	if err != nil {
 		slog.Error("granting exp to user on message create")
 	}
-
+	if levelUp {
+		levels.HandleLevelUp(event.Client(), author.ID, level)
+	}
 }
 
 func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
@@ -104,9 +106,11 @@ func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
 		return
 	}
 
-	err := levels.GrantExpToUser(event.Client(), author.ID, author.Username, levels.EXP_PER_VOICE_JOIN)
+	level, levelUp, err := levels.GrantExpToUser(author.ID, author.Username, levels.EXP_PER_VOICE_JOIN)
 	if err != nil {
 		slog.Error("granting exp to user on voice join")
 	}
-
+	if levelUp {
+		levels.HandleLevelUp(event.Client(), author.ID, level)
+	}
 }
