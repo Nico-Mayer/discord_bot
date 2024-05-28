@@ -7,6 +7,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/db"
+	"github.com/nico-mayer/discordbot/levels"
 )
 
 var UserCommand = discord.SlashCommandCreate{
@@ -66,7 +67,7 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 					{
 						Name: "Level",
 						// Todo add level calculation
-						Value: fmt.Sprintf("```%d```", 1),
+						Value: fmt.Sprintf("```%d```", levels.CalcUserLevel(dbUser.Exp)),
 					}, {
 						Name:  "Exp",
 						Value: fmt.Sprintf("```%d```", dbUser.Exp),

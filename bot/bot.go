@@ -11,6 +11,7 @@ import (
 	"github.com/disgoorg/disgo/cache"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/nico-mayer/discordbot/levels"
 )
 
 type BotStatus int32
@@ -54,6 +55,12 @@ func (b *Bot) SetupBot() {
 
 		// Slash command listener
 		bot.WithEventListenerFunc(b.onApplicationCommand),
+
+		// Message create listener
+		bot.WithEventListenerFunc(b.onMessageCreate),
+
+		// Voice join listener
+		bot.WithEventListenerFunc(b.onVoiceJoin),
 	)
 	if err != nil {
 		log.Fatal("FATAL: failed to setup bot client", err)
@@ -75,4 +82,31 @@ func (b *Bot) onApplicationCommand(event *events.ApplicationCommandInteractionCr
 	if err != nil {
 		slog.Error("executing slash command", slog.String("command", data.CommandName()), err)
 	}
+}
+
+func (b *Bot) onMessageCreate(event *events.MessageCreate) {
+	author := event.Message.Member.User
+
+	if author.Bot {
+		return
+	}
+
+	err := levels.GrantExpToUser(event.Client(), author.ID, author.Username, levels.EXP_PER_MESSAGE)
+	if err != nil {
+		slog.Error("granting exp to user on message create")
+	}
+
+}
+
+func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
+	author := event.Member.User
+	if event.Member.User.Bot {
+		return
+	}
+
+	err := levels.GrantExpToUser(event.Client(), author.ID, author.Username, levels.EXP_PER_VOICE_JOIN)
+	if err != nil {
+		slog.Error("granting exp to user on voice join")
+	}
+
 }

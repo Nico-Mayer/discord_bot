@@ -50,3 +50,14 @@ func (user *DBUser) SetRiotPUUID(puuid string) error {
 
 	return nil
 }
+
+func (user *DBUser) GrantExp(exp int) error {
+	query := "UPDATE users SET exp = exp + $1 WHERE id = $2"
+
+	_, err := DB.Exec(query, exp, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
