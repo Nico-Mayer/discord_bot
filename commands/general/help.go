@@ -14,7 +14,6 @@ var HelpCommand = discord.SlashCommandCreate{
 }
 
 func HelpCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
-
 	var slashCommands []discord.SlashCommand
 
 	if err := event.DeferCreateMessage(true); err != nil {

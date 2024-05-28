@@ -3,7 +3,7 @@ module github.com/nico-mayer/discordbot
 go 1.21.6
 
 require (
-	github.com/disgoorg/disgo v0.18.5
+	github.com/disgoorg/disgo v0.18.6
 	github.com/disgoorg/snowflake/v2 v2.0.1
 )
 

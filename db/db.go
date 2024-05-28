@@ -19,7 +19,14 @@ func init() {
 		godotenv.Load()
 	}
 
-	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", os.Getenv("PGUSER"), os.Getenv("PGPASSWORD"), os.Getenv("PGHOST"), os.Getenv("PGPORT"), os.Getenv("PGDATABASE"))
+	connStr := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s",
+		os.Getenv("PGUSER"),
+		os.Getenv("PGPASSWORD"),
+		os.Getenv("PGHOST"),
+		os.Getenv("PGPORT"),
+		os.Getenv("PGDATABASE"),
+	)
 	var err error
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
