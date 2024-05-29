@@ -51,7 +51,6 @@ func (b *Bot) SetupBot() {
 				gateway.IntentGuilds,
 				gateway.IntentGuildMessages,
 				gateway.IntentGuildVoiceStates,
-				gateway.IntentsAll,
 			),
 		),
 		// Slash command listener

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -56,6 +57,7 @@ func main() {
 	if err != nil {
 		slog.Error("setting bot status", err)
 	}
+	slog.Info(fmt.Sprintf("set status to: %s", os.Getenv("BOT_STATUS")))
 
 	signal.Notify(osSignals, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-osSignals
