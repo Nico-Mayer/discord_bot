@@ -11,6 +11,7 @@ import (
 const (
 	EXP_PER_MESSAGE         int = 10
 	EXP_PER_VOICE_JOIN      int = 25
+	EXP_PER_SLASH_COMMAND   int = 5
 	EXP_NEEDED_FOR_LEVEL_UP int = 250
 )
 
@@ -22,17 +23,21 @@ var levelMapping = map[int]string{
 	60: "696671960507351100",
 }
 
-func GrantExpToUser(dbUser db.DBUser, exp int) (int, bool, error) {
+func GrantExpToUser(botClient bot.Client, dbUser db.DBUser, exp int) error {
 	err := dbUser.GrantExp(exp)
 	if err != nil {
-		return 0, false, err
+		return err
 	}
 
 	oldLevel := CalcUserLevel(dbUser.Exp)
 	newLevel := CalcUserLevel(dbUser.Exp + exp)
 	levelUp := oldLevel != newLevel
 
-	return newLevel, levelUp, err
+	if levelUp {
+		handleLevelUp(botClient, dbUser.ID, newLevel)
+	}
+
+	return err
 }
 
 func CalcUserLevel(exp int) int {
@@ -43,7 +48,7 @@ func CalcUserLevel(exp int) int {
 	return exp / EXP_NEEDED_FOR_LEVEL_UP
 }
 
-func HandleLevelUp(botClient bot.Client, userId snowflake.ID, level int) {
+func handleLevelUp(botClient bot.Client, userId snowflake.ID, level int) {
 	newRank := levelMapping[level]
 	if newRank != "" {
 		err := botClient.Rest().AddMemberRole(snowflake.GetEnv("GUILD_ID"), userId, snowflake.MustParse(newRank))

@@ -2,6 +2,7 @@ package mybot
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -63,7 +64,7 @@ func (b *Bot) SetupBot() {
 		bot.WithEventListenerFunc(b.onVoiceJoin),
 	)
 	if err != nil {
-		log.Fatal("FATAL: failed to setup bot client", err)
+		log.Fatal("FATAL: setting up bot client", err)
 	}
 
 	defer b.Client.Close(context.TODO())
@@ -71,13 +72,24 @@ func (b *Bot) SetupBot() {
 
 func (b *Bot) onApplicationCommand(event *events.ApplicationCommandInteractionCreate) {
 	data := event.SlashCommandInteractionData()
+	author := event.User()
+
+	dbUser, err := db.ValidateAndFetchUser(author.ID, author.Username)
+	if err != nil {
+		slog.Error("fetching db user on slashcommand execute")
+	}
+
+	err = levels.GrantExpToUser(b.Client, dbUser, levels.EXP_PER_SLASH_COMMAND)
+	if err != nil {
+		slog.Error("granting exp to user on slash command exec")
+	}
 
 	handler, ok := b.Handlers[data.CommandName()]
 	if !ok {
 		slog.Info("unknown command", slog.String("command", data.CommandName()))
 		return
 	}
-	err := handler(event, b)
+	err = handler(event, b)
 	if err != nil {
 		slog.Error("executing slash command", slog.String("command", data.CommandName()), err)
 	}
@@ -94,12 +106,9 @@ func (b *Bot) onMessageCreate(event *events.MessageCreate) {
 		slog.Error("validating and fetching user on message create")
 	}
 
-	level, levelUp, err := levels.GrantExpToUser(dbUser, levels.EXP_PER_MESSAGE)
+	err = levels.GrantExpToUser(b.Client, dbUser, levels.EXP_PER_MESSAGE)
 	if err != nil {
 		slog.Error("granting exp to user on message create")
-	}
-	if levelUp {
-		levels.HandleLevelUp(event.Client(), author.ID, level)
 	}
 
 	err = dbUser.IncrementMessageSentCount()
@@ -118,12 +127,9 @@ func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
 		slog.Error("validating and fetching user on voice join")
 	}
 
-	level, levelUp, err := levels.GrantExpToUser(dbUser, levels.EXP_PER_VOICE_JOIN)
+	err = levels.GrantExpToUser(b.Client, dbUser, levels.EXP_PER_VOICE_JOIN)
 	if err != nil {
 		slog.Error("granting exp to user on voice join")
-	}
-	if levelUp {
-		levels.HandleLevelUp(event.Client(), author.ID, level)
 	}
 
 	err = dbUser.IncrementVoiceJoinCount()
@@ -133,5 +139,6 @@ func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
 }
 
 func (b *Bot) SetStatus(status string) error {
+	slog.Info(fmt.Sprintf("bot status set to: %s", status))
 	return b.Client.SetPresence(context.TODO(), gateway.WithCustomActivity(status))
 }
