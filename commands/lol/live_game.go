@@ -41,22 +41,7 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 		})
 	}
 
-	if !db.UserInDatabase(target.ID) {
-		err := db.InsertDBUser(target.ID, target.Username)
-		if err != nil {
-			return event.CreateMessage(discord.MessageCreate{
-				Flags:   discord.MessageFlagEphemeral,
-				Content: "ERROR putting user into database",
-			})
-		}
-
-		return event.CreateMessage(discord.MessageCreate{
-			Flags:   discord.MessageFlagEphemeral,
-			Content: fmt.Sprintf("<@%s> has no riot account connected", target.ID),
-		})
-	}
-
-	dbuser, err := db.GetUser(target.ID)
+	dbuser, err := db.ValidateAndFetchUser(target.ID, target.Username)
 	if err != nil {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,

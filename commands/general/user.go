@@ -24,9 +24,9 @@ var UserCommand = discord.SlashCommandCreate{
 
 func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
-	targetUser := data.User("user")
+	target := data.User("user")
 
-	if targetUser.Bot {
+	if target.Bot {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
 			Content: "Bot-Informationen sind nicht abrufbar.",
@@ -37,14 +37,7 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 		return err
 	}
 
-	if !db.UserInDatabase(targetUser.ID) {
-		err := db.InsertDBUser(targetUser.ID, targetUser.Username)
-		if err != nil {
-			return err
-		}
-	}
-
-	dbUser, err := db.GetUser(targetUser.ID)
+	dbUser, err := db.ValidateAndFetchUser(target.ID, target.Username)
 	if err != nil {
 		return err
 	}
@@ -57,11 +50,11 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 	_, err = event.Client().Rest().CreateFollowupMessage(event.ApplicationID(), event.Token(), discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
-				Title:       targetUser.Username,
+				Title:       dbUser.Name,
 				Description: "User stats:",
 				Color:       0x00ff00,
 				Thumbnail: &discord.EmbedResource{
-					URL: *targetUser.AvatarURL(),
+					URL: *target.AvatarURL(),
 				},
 				Fields: []discord.EmbedField{
 					{

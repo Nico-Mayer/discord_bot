@@ -41,17 +41,7 @@ func AddRiotAccountCommandHandler(event *events.ApplicationCommandInteractionCre
 		})
 	}
 
-	if !db.UserInDatabase(author.ID) {
-		err := db.InsertDBUser(author.ID, author.Username)
-		if err != nil {
-			return event.CreateMessage(discord.MessageCreate{
-				Flags:   discord.MessageFlagEphemeral,
-				Content: "ERROR inserting user to database",
-			})
-		}
-	}
-
-	dbuser, err := db.GetUser(author.ID)
+	dbuser, err := db.ValidateAndFetchUser(author.ID, author.Username)
 	if err != nil {
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,

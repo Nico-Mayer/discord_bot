@@ -40,6 +40,23 @@ func UserInDatabase(id snowflake.ID) bool {
 	return err == nil
 }
 
+// Validates if user is inside database, if not it inserts the user. Returns the corresponding database user.
+func ValidateAndFetchUser(userId snowflake.ID, username string) (DBUser, error) {
+	if !UserInDatabase(userId) {
+		err := InsertDBUser(userId, username)
+		if err != nil {
+			return DBUser{}, err
+		}
+	}
+
+	dbUser, err := GetUser(userId)
+	if err != nil {
+		return DBUser{}, err
+	}
+
+	return dbUser, nil
+}
+
 func (user *DBUser) SetRiotPUUID(puuid string) error {
 	query := "UPDATE users SET riot_puuid = $1 WHERE id = $2"
 

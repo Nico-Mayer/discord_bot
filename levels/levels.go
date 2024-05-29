@@ -22,20 +22,8 @@ var levelMapping = map[int]string{
 	60: "696671960507351100",
 }
 
-func GrantExpToUser(userId snowflake.ID, username string, exp int) (int, bool, error) {
-	if !db.UserInDatabase(userId) {
-		err := db.InsertDBUser(userId, username)
-		if err != nil {
-			return 0, false, err
-		}
-	}
-
-	dbUser, err := db.GetUser(userId)
-	if err != nil {
-		return 0, false, err
-	}
-
-	err = dbUser.GrantExp(exp)
+func GrantExpToUser(dbUser db.DBUser, exp int) (int, bool, error) {
+	err := dbUser.GrantExp(exp)
 	if err != nil {
 		return 0, false, err
 	}
