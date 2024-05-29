@@ -44,7 +44,6 @@ func CalcUserLevel(exp int) int {
 }
 
 func HandleLevelUp(botClient bot.Client, userId snowflake.ID, level int) {
-
 	newRank := levelMapping[level]
 	if newRank != "" {
 		err := botClient.Rest().AddMemberRole(snowflake.GetEnv("GUILD_ID"), userId, snowflake.MustParse(newRank))

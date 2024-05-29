@@ -54,7 +54,6 @@ func (b *Bot) SetupBot() {
 				gateway.IntentsAll,
 			),
 		),
-
 		// Slash command listener
 		bot.WithEventListenerFunc(b.onApplicationCommand),
 
