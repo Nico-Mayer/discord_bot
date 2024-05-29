@@ -7,10 +7,12 @@ import (
 )
 
 type DBUser struct {
-	ID        snowflake.ID   `json:"id"`
-	Name      string         `json:"name"`
-	Exp       int            `json:"exp"`
-	RiotPUUID sql.NullString `json:"riot_puuid"`
+	ID             snowflake.ID   `json:"id"`
+	Name           string         `json:"name"`
+	Exp            int            `json:"exp"`
+	RiotPUUID      sql.NullString `json:"riot_puuid"`
+	MessageCount   int            `json:"sent_messages_count"`
+	VoiceJoinCount int            `json:"voice_join_count"`
 }
 
 func InsertDBUser(discordUserID snowflake.ID, username string) error {
@@ -26,7 +28,7 @@ func InsertDBUser(discordUserID snowflake.ID, username string) error {
 func GetUser(id snowflake.ID) (DBUser, error) {
 	var user DBUser
 	query := "SELECT * FROM users WHERE id = $1"
-	err := DB.QueryRow(query, id).Scan(&user.ID, &user.Name, &user.Exp, &user.RiotPUUID)
+	err := DB.QueryRow(query, id).Scan(&user.ID, &user.Name, &user.Exp, &user.RiotPUUID, &user.MessageCount, &user.VoiceJoinCount)
 	if err != nil {
 		return user, err
 	}
@@ -72,6 +74,28 @@ func (user *DBUser) GrantExp(exp int) error {
 	query := "UPDATE users SET exp = exp + $1 WHERE id = $2"
 
 	_, err := DB.Exec(query, exp, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (user *DBUser) IncrementMessageSentCount() error {
+	query := "UPDATE users SET sent_messages_count = sent_messages_count + 1 WHERE id = $1"
+
+	_, err := DB.Exec(query, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (user *DBUser) IncrementVoiceJoinCount() error {
+	query := "UPDATE users SET voice_join_count = voice_join_count + 1 WHERE id = $1"
+
+	_, err := DB.Exec(query, user.ID)
 	if err != nil {
 		return err
 	}

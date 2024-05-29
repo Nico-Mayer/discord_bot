@@ -101,6 +101,11 @@ func (b *Bot) onMessageCreate(event *events.MessageCreate) {
 	if levelUp {
 		levels.HandleLevelUp(event.Client(), author.ID, level)
 	}
+
+	err = dbUser.IncrementMessageSentCount()
+	if err != nil {
+		slog.Error("incrementing message count for user", err)
+	}
 }
 
 func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
@@ -119,6 +124,11 @@ func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
 	}
 	if levelUp {
 		levels.HandleLevelUp(event.Client(), author.ID, level)
+	}
+
+	err = dbUser.IncrementVoiceJoinCount()
+	if err != nil {
+		slog.Error("incrementing voice join count", err)
 	}
 }
 
