@@ -52,6 +52,11 @@ func main() {
 	}
 	slog.Info("bot is now running. Press CTRL-C to exit.")
 
+	err := bot.SetStatus(os.Getenv("BOT_STATUS"))
+	if err != nil {
+		slog.Error("setting bot status", err)
+	}
+
 	signal.Notify(osSignals, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-osSignals
 }

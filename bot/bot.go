@@ -51,6 +51,7 @@ func (b *Bot) SetupBot() {
 				gateway.IntentGuilds,
 				gateway.IntentGuildMessages,
 				gateway.IntentGuildVoiceStates,
+				gateway.IntentsAll,
 			),
 		),
 
@@ -68,7 +69,6 @@ func (b *Bot) SetupBot() {
 	}
 
 	defer b.Client.Close(context.TODO())
-
 }
 
 func (b *Bot) onApplicationCommand(event *events.ApplicationCommandInteractionCreate) {
@@ -122,4 +122,8 @@ func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
 	if levelUp {
 		levels.HandleLevelUp(event.Client(), author.ID, level)
 	}
+}
+
+func (b *Bot) SetStatus(status string) error {
+	return b.Client.SetPresence(context.TODO(), gateway.WithCustomActivity(status))
 }
