@@ -8,6 +8,7 @@ import (
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/db"
 	"github.com/nico-mayer/discordbot/levels"
+	"github.com/nico-mayer/discordbot/utils"
 )
 
 var UserCommand = discord.SlashCommandCreate{
@@ -54,7 +55,7 @@ func UserCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 				Description: "User stats:",
 				Color:       0x00ff00,
 				Thumbnail: &discord.EmbedResource{
-					URL: *target.AvatarURL(),
+					URL: utils.GetAvatarUrl(target),
 				},
 				Fields: []discord.EmbedField{
 					{

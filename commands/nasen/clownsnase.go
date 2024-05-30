@@ -9,6 +9,7 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/db"
+	"github.com/nico-mayer/discordbot/utils"
 )
 
 var ClownsnaseCommand = discord.SlashCommandCreate{
@@ -78,7 +79,7 @@ func ClownsnaseCommandHandler(event *events.ApplicationCommandInteractionCreate,
 				Description: fmt.Sprintf("`Grund: %s`", reason),
 				Color:       0x00ff00,
 				Thumbnail: &discord.EmbedResource{
-					URL: *target.AvatarURL(),
+					URL: utils.GetAvatarUrl(target),
 				},
 				Fields: []discord.EmbedField{
 					{

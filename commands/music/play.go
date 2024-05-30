@@ -11,6 +11,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/voice"
 	mybot "github.com/nico-mayer/discordbot/bot"
+	"github.com/nico-mayer/discordbot/utils"
 )
 
 var (
@@ -62,7 +63,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 				{
 					Author: &discord.EmbedAuthor{
 						Name:    event.User().Username,
-						IconURL: *event.User().AvatarURL(),
+						IconURL: utils.GetAvatarUrl(event.User()),
 					},
 					Title:       "📃 - Warteschlange",
 					Description: fmt.Sprintf("Added Song: [`%s`](%s)", song.Title, song.URL),
@@ -97,7 +98,7 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 			{
 				Author: &discord.EmbedAuthor{
 					Name:    event.User().Username,
-					IconURL: *event.User().AvatarURL(),
+					IconURL: utils.GetAvatarUrl(event.User()),
 				},
 				Color:       0xff0000,
 				Title:       "🔊 - Playing",

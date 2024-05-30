@@ -8,6 +8,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	mybot "github.com/nico-mayer/discordbot/bot"
 	"github.com/nico-mayer/discordbot/db"
+	"github.com/nico-mayer/discordbot/utils"
 )
 
 var AddRiotAccountCommand = discord.SlashCommandCreate{
@@ -64,7 +65,7 @@ func AddRiotAccountCommandHandler(event *events.ApplicationCommandInteractionCre
 			{
 				Author: &discord.EmbedAuthor{
 					Name:    author.Username,
-					IconURL: *author.AvatarURL(),
+					IconURL: utils.GetAvatarUrl(author),
 				},
 				Title:       "✅ - Account added",
 				Description: fmt.Sprintf("Account: [`%s#%s`]", account.GameName, account.TagLine),

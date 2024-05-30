@@ -6,6 +6,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	mybot "github.com/nico-mayer/discordbot/bot"
+	"github.com/nico-mayer/discordbot/utils"
 )
 
 var SkipCommand = discord.SlashCommandCreate{
@@ -37,7 +38,7 @@ func SkipCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 			{
 				Author: &discord.EmbedAuthor{
 					Name:    event.User().Username,
-					IconURL: *event.User().AvatarURL(),
+					IconURL: utils.GetAvatarUrl(event.User()),
 				},
 				Title:       "⏩ - Skipped",
 				Description: fmt.Sprintf("Next Song: [`%s`](<%s>)", nextSong.Title, nextSong.URL),
