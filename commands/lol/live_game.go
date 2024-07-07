@@ -3,8 +3,10 @@ package lol
 import (
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
+	"github.com/KnutZuidema/golio/datadragon"
 	"github.com/KnutZuidema/golio/riot/lol"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -33,6 +35,10 @@ var LiveGameCommand = discord.SlashCommandCreate{
 func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b *mybot.Bot) error {
 	data := event.SlashCommandInteractionData()
 	target := data.User("user")
+	champs, err := GolioClient.DataDragon.GetChampions()
+	if err != nil {
+		slog.Error("error fetching champs", err)
+	}
 
 	if target.Bot {
 		return event.CreateMessage(discord.MessageCreate{
@@ -92,11 +98,11 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 				Fields: []discord.EmbedField{
 					{
 						Name:   "🔵 Blue Team",
-						Value:  getTeam(liveGame, BLUE_SIDE),
+						Value:  getTeam(liveGame, BLUE_SIDE, champs),
 						Inline: &inline,
 					}, {
 						Name:   "🔴 Red Team",
-						Value:  getTeam(liveGame, RED_SIDE),
+						Value:  getTeam(liveGame, RED_SIDE, champs),
 						Inline: &inline,
 					},
 				},
@@ -106,7 +112,7 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 	return err
 }
 
-func getTeam(liveGame *lol.GameInfo, teamID int) string {
+func getTeam(liveGame *lol.GameInfo, teamID int, champs []datadragon.ChampionData) string {
 	var res strings.Builder
 
 	for _, participant := range liveGame.Participants {
@@ -123,12 +129,19 @@ func getTeam(liveGame *lol.GameInfo, teamID int) string {
 				urlExtension = strings.ReplaceAll(urlExtension, " ", "%20")
 			}
 
-			champ, err := participant.GetChampion(GolioClient.DataDragon)
+			var playedChamp datadragon.ChampionData
+
+			for _, champion := range champs {
+				if champion.Key == strconv.Itoa(participant.ChampionID) {
+					playedChamp = champion
+				}
+			}
+
 			if err != nil {
 				champName = "unknown"
 				slog.Error("get participant played champion", err)
 			} else {
-				champName = champ.Name
+				champName = playedChamp.Name
 			}
 
 			res.WriteString(fmt.Sprintf(
