@@ -119,7 +119,8 @@ func getTeam(liveGame *lol.GameInfo, teamID int) string {
 				urlExtension = "unknown"
 				slog.Error("get participant account", err)
 			} else {
-				urlExtension = strings.ReplaceAll(participantRiotAccount.GameName, " ", "%20") + "-" + participantRiotAccount.TagLine
+				urlExtension = participantRiotAccount.GameName + "-" + participantRiotAccount.TagLine
+				urlExtension = strings.ReplaceAll(urlExtension, " ", "%20")
 			}
 
 			champ, err := participant.GetChampion(GolioClient.DataDragon)
