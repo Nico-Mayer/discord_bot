@@ -61,20 +61,20 @@ func (b *Bot) PlayQueue(guildID snowflake.ID) error {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		slog.Error("creating stdout pipe", err)
+		slog.Error("creating stdout pipe", "err:", err.Error())
 		return err
 	}
 
 	b.BotStatus = Playing
 
 	if err = cmd.Start(); err != nil {
-		slog.Error("stating yt-dlp command", err)
+		slog.Error("stating yt-dlp command", "err:", err.Error())
 		return err
 	}
 
 	opusProvider, err := ffmpeg.New(context.TODO(), bufio.NewReader(stdout))
 	if err != nil {
-		slog.Error("creating opus provider", err)
+		slog.Error("creating opus provider", "err:", err.Error())
 		return err
 	}
 
@@ -96,7 +96,7 @@ func (b *Bot) PlayQueue(guildID snowflake.ID) error {
 
 	go func(doneChan chan bool) {
 		if err = cmd.Wait(); err != nil {
-			slog.Error("waiting for yt-dlp command", err)
+			slog.Error("waiting for yt-dlp command", "err:", err.Error())
 		}
 		time.Sleep(7 * time.Second)
 		doneChan <- true
@@ -124,7 +124,7 @@ func getSongData(query string) (Song, error) {
 	)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		slog.Error("loading songdata with yt-dlp command", err)
+		slog.Error("loading songdata with yt-dlp command", "err:", err.Error())
 		return Song{}, err
 	}
 

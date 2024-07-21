@@ -37,7 +37,7 @@ func LiveGameCommandHandler(event *events.ApplicationCommandInteractionCreate, b
 	target := data.User("user")
 	champs, err := GolioClient.DataDragon.GetChampions()
 	if err != nil {
-		slog.Error("error fetching champs", err)
+		slog.Error("error fetching champs", "err:", err.Error())
 	}
 
 	if target.Bot {
@@ -123,7 +123,7 @@ func getTeam(liveGame *lol.GameInfo, teamID int, champs []datadragon.ChampionDat
 			participantRiotAccount, err := GolioClient.Riot.Account.GetByPUUID(participant.PUUID)
 			if err != nil {
 				urlExtension = "unknown"
-				slog.Error("get participant account", err)
+				slog.Error("get participant account", "err:", err.Error())
 			} else {
 				urlExtension = participantRiotAccount.GameName + "-" + participantRiotAccount.TagLine
 				urlExtension = strings.ReplaceAll(urlExtension, " ", "%20")
@@ -139,7 +139,7 @@ func getTeam(liveGame *lol.GameInfo, teamID int, champs []datadragon.ChampionDat
 
 			if err != nil {
 				champName = "unknown"
-				slog.Error("get participant played champion", err)
+				slog.Error("get participant played champion", "err:", err.Error())
 			} else {
 				champName = playedChamp.Name
 			}

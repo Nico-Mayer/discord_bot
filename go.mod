@@ -1,10 +1,12 @@
 module github.com/nico-mayer/discordbot
 
-go 1.21.6
+go 1.22
+
+toolchain go1.22.4
 
 require (
-	github.com/disgoorg/disgo v0.18.8
-	github.com/disgoorg/snowflake/v2 v2.0.1
+	github.com/disgoorg/disgo v0.18.9
+	github.com/disgoorg/snowflake/v2 v2.0.3
 )
 
 require (
@@ -24,7 +26,7 @@ require (
 )
 
 require (
-	github.com/disgoorg/ffmpeg-audio v0.0.0-20231003110258-4ddc17e758b1
+	github.com/disgoorg/ffmpeg-audio v0.0.0-20240711185218-971420b16e69
 	github.com/disgoorg/json v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect

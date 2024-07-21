@@ -91,7 +91,7 @@ func (b *Bot) onApplicationCommand(event *events.ApplicationCommandInteractionCr
 	}
 	err = handler(event, b)
 	if err != nil {
-		slog.Error("executing slash command", slog.String("command", data.CommandName()), err)
+		slog.Error("executing slash command", slog.String("command", data.CommandName()), "err:", err.Error())
 	}
 }
 
@@ -113,7 +113,7 @@ func (b *Bot) onMessageCreate(event *events.MessageCreate) {
 
 	err = dbUser.IncrementMessageSentCount()
 	if err != nil {
-		slog.Error("incrementing message count for user", err)
+		slog.Error("incrementing message count for user", "err:", err.Error())
 	}
 }
 
@@ -134,7 +134,7 @@ func (b *Bot) onVoiceJoin(event *events.GuildVoiceJoin) {
 
 	err = dbUser.IncrementVoiceJoinCount()
 	if err != nil {
-		slog.Error("incrementing voice join count", err)
+		slog.Error("incrementing voice join count", "err:", err.Error())
 	}
 }
 

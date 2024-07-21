@@ -85,10 +85,10 @@ func PlayCommandHandler(event *events.ApplicationCommandInteractionCreate, b *my
 	go func() {
 		conn := b.Client.VoiceManager().CreateConn(*event.GuildID())
 		if err = conn.Open(context.TODO(), *voiceState.ChannelID, false, false); err != nil {
-			slog.Error("connecting to voice channel", err)
+			slog.Error("connecting to voice channel", "err:", err.Error())
 		}
 		if err = conn.SetSpeaking(context.TODO(), voice.SpeakingFlagMicrophone); err != nil {
-			slog.Error("setting bot to speaking", err)
+			slog.Error("setting bot to speaking", "err:", err.Error())
 		}
 	}()
 

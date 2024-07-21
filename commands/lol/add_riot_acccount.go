@@ -52,7 +52,7 @@ func AddRiotAccountCommandHandler(event *events.ApplicationCommandInteractionCre
 
 	err = dbuser.SetRiotPUUID(account.Puuid)
 	if err != nil {
-		slog.Error("", err)
+		slog.Error("setting riot puuid in database", "err:", err.Error())
 		return event.CreateMessage(discord.MessageCreate{
 			Flags:   discord.MessageFlagEphemeral,
 			Content: "ERROR setting riot puuid in database",

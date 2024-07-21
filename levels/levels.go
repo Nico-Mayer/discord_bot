@@ -53,7 +53,7 @@ func handleLevelUp(botClient bot.Client, userId snowflake.ID, level int) {
 	if newRank != "" {
 		err := botClient.Rest().AddMemberRole(snowflake.GetEnv("GUILD_ID"), userId, snowflake.MustParse(newRank))
 		if err != nil {
-			slog.Error("giving role to user", err)
+			slog.Error("giving role to user", "err:", err.Error())
 		}
 		return
 	}
